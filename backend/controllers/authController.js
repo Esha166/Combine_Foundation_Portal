@@ -10,42 +10,6 @@ const generateToken = (id) => {
   });
 };
 
-export const login = async (req, res, next) => {
-  try {
-    const { email, password } = req.body;
-
-    // Validate
-    if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please provide email and password'
-      });
-    }
-
-    // Check user exists
-    const user = await User.findOne({ email }).select('+password');
-
-    if (!user || !user.isActive) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid credentials'
-      });
-    }
-
-    // Check password
-    const isMatch = await user.comparePassword(password);
-
-    if (!isMatch) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid credentials'
-      });
-    }
-
-    // Update last login
-    user.lastLogin = Date.now();
-    await user.save();
-
     // Create audit log
     await logAuditEvent('login', user._id, null, null, req.ip, req.headers['user-agent']);
 
@@ -233,16 +197,6 @@ export const verifyOTP = async (req, res, next) => {
 };
 
 // Reset Password
-export const resetPassword = async (req, res, next) => {
-  try {
-    const { email, otp, newPassword } = req.body;
-
-    if (!email || !otp || !newPassword) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please provide email, OTP, and new password'
-      });
-    }
 
     // Validate password strength if needed
     if (newPassword.length < 6) {
@@ -289,13 +243,6 @@ export const resetPassword = async (req, res, next) => {
     // Create audit log
     await logAuditEvent('password_reset', user._id, null, null, req.ip);
 
-    // Send email notification
-    await sendPasswordChangeEmail(user);
-
-    res.status(200).json({
-      success: true,
-      message: 'Password reset successfully'
-    });
   } catch (error) {
     next(error);
   }
