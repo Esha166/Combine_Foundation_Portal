@@ -1,0 +1,118 @@
+super admin
+email: foundationcombine@gmail.com
+password: combineFoundation@123
+
+admin:
+email: kabdulbasit856@gmail.com
+password: pakistan1987
+
+developer:
+ramla.eman.ra@gmail.com
+developer2009@Ramla
+
+trustee:
+rifapih588@dropeso.com
+justdidramla2009@Ramla
+
+coloring
+email: - done
+number: +92 319 3372277 - done
+add auditlogs to super admin - done
+
+validation error - done
+
+developer guide
+detail for mongodb price
+
+# MONGO_URI=mongodb+srv://foundationcombine_db_user:3ylSZDAIuhtnYxXc@cluster0.ell8u0z.mongodb.net/
+# CLOUDINARY_CLOUD_NAME=dwipvgirm
+# CLOUDINARY_API_KEY=194689947852556
+# CLOUDINARY_API_SECRET=gq-SXZOIjUqcyLVdTv6R9pSIM2I
+# JWT_SECRET=mySuperSecretKey123!
+# SMTP_HOST=smtp.gmail.com
+# SMTP_PORT=465
+# SMTP_USER=foundationcombine@gmail.com
+# SMTP_PASS=gtuqxeaxkppmurbv
+
+# FRONTEND_URL=http://localhost:3000
+
+# NGO_NAME=Your NGO Name
+# PORT=4000
+
+this is the form entries and form action and there is 4 pages
+page 1:
+🌟 Combine Foundation – Volunteer Leadership Program Registration
+Why you join Combine Foundation as a Volunteer ? 
+At Combine Foundation, volunteering is not just service — it's transformation.
+We don’t treat our volunteers as helpers. We treat them as future leaders, innovators, and changemakers. What sets us apart:
+🔹 Real-World Skill Development : Volunteers don’t just assist — they lead projects, contribute to tech-driven community initiatives, and gain hands-on experience.
+🔹 Free Career-Aligned Training : While you serve the community, we invest in your future with industry-focused courses in Web Development, Python, and AI, completely free.
+🔹 Mentorship-Driven Culture : You’ll get mentorship from industry experts, project leaders,  experienced developers, and social innovators.
+🔹 Social Impact Through Technology : We blend tech and service — our volunteers learn by building real tools that solve local problems.
+🔹 Recognition & Certification : Upon completing your service and training, you receive professional certifications, portfolio reviews, and reference letters to advance your career.
+🔹 Free for Volunteers : Our course is fully sponsored for active volunteers — making it accessible to youth from all backgrounds while rewarding community service.
+📌 Important Notes:
+This is a voluntary and non-paid opportunity.
+Active volunteers are eligible for certificates, letters of recommendation, potential job offers, and future project-based roles.
+Applicants must exhibit a strong sense of commitment, discipline, and a genuine desire to serve for the next six months.  
+Together, we can create a future driven by innovation, education, and compassion.  
+page 2
+form entries
+form action: https://docs.google.com/forms/u/0/d/e/1FAIpQLSfaY5Jmdv2Ufi_J9eHZNFUZl6Kezft-9uIOLfotGeIo7blGKA/formResponse?pli=1
+First Name: entry.58547048
+Age: entry.485654254
+Phone Number: entry.220126764
+Email: entry.948643695
+Gender: entry.2144617921
+CNIC / B-Form: entry.1397322458
+City of Residence: entry.1138324622
+  karachi:
+  Other: 
+What is your Highest Level of education?: entry.436788973
+  Matric:
+  Intermidiate:
+  Undergraduate:
+  Bachelors:
+  Others:
+Institute Name: entry.261448005
+Provide any social media profile link: entry.1568152545
+page3:
+Which of your skills would you like to contribute as a volunteer?:
+  Full Stack Developer / MERN stack Developer: entry.903918810
+  Web / App & Software Development: entry.903918810
+  AI / ML: entry.903918810
+  UI & UX: entry.903918810
+  Search Engine Optimization: entry.903918810
+  Project Management / Event Management: entry.903918810
+  Content Creater: entry.903918810
+  Social Media Management & Digital Marketing: entry.903918810
+  Graphic Designing: entry.903918810
+  Video Editing: entry.903918810
+  Data Engineer / Data Analyst: entry.903918810
+  Teaching: entry.903918810
+  Research & Development: entry.903918810
+  Accounting / Finance: entry.903918810
+  Hosting: entry.903918810
+  Other: : entry.903918810
+Do you have any prior volunteering experience?: entry.1892254064
+ yes:
+ no
+If yes, briefly describe your role.: entry.1160012859
+page 4:
+When will you available to volunteer?: entry.1296133079
+  Monday
+  Tuesday
+  Wednesday
+  Thursday
+  Friday
+  Saturday
+  Sunday
+How many hours are you available to volunteer each week?: entry.519450352
+  2–4 hours per week
+  5–7 hours per week
+  8–10 hours per week
+  10+ hours per week
+Declaration: entry.1883262898
+I agree to follow the policies and code of conduct of Combine Foundation. I understand this is a voluntary, unpaid role with no financial compensation.  
+ I agree and accept the above terms.
+and done submit
