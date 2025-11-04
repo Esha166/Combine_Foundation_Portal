@@ -33,6 +33,16 @@ const logger = winston.createLogger({
 if (process.env.NODE_ENV !== 'production' || isServerless) {
   logger.add(new winston.transports.Console({
     format: winston.format.combine(
+      winston.format.colorize(),
+      winston.format.simple()
+    )
+  }));
+}
+
+// In production serverless environments, add console logger with JSON format
+if (process.env.NODE_ENV === 'production' && isServerless) {
+  logger.add(new winston.transports.Console({
+    format: winston.format.combine(
       winston.format.timestamp(),
       winston.format.errors({ stack: true }),
       winston.format.json()
