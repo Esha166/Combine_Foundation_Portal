@@ -1,5 +1,10 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
+import multer from 'multer';
+import mongoSanitize from 'express-mongo-sanitize';
+import helmet from 'helmet';
 import connectDB from './config/db.js';
 import errorHandler from './middleware/errorHandler.js';
 import {limiter} from './middleware/rateLimiter.js';
@@ -7,6 +12,9 @@ import {limiter} from './middleware/rateLimiter.js';
 // Import discriminator models to register them with the base User model
 import './models/Trustee.js';
 import './models/Volunteer.js';
+import './models/Admin.js';
+import './models/SuperAdmin.js';
+import './models/Developer.js';
 
 // routes
 import authRoute from './routes/auth.js';
@@ -36,6 +44,21 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Cookie parser
+app.use(cookieParser());
+
+// Sanitize data (prevent NoSQL injection)
+// app.use(mongoSanitize());
+
+// Set security headers
+app.use(helmet());
+
+// Enable CORS
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  credentials: true
+}));
+
 // Rate limiting
 app.use('/api/', limiter);
 
@@ -59,7 +82,10 @@ app.get('/', (req, res) => {
 app.use((error, req, res, next) => {
   if (error instanceof multer.MulterError) {
     if (error.code === 'LIMIT_FILE_SIZE') {
-      pass
+      return res.status(400).json({
+        success: false,
+        message: 'File too large. Maximum size allowed is 5MB.'
+      });
     } else if (error.code === 'LIMIT_UNEXPECTED_FILE') {
       return res.status(400).json({
         success: false,
@@ -71,6 +97,10 @@ app.use((error, req, res, next) => {
         message: 'Form fields limit exceeded.'
       });
     }
+    return res.status(400).json({
+      success: false,
+      message: error.message
+    });
   } else if (error.message && error.message.includes('Only image files are allowed')) {
     return res.status(400).json({
       success: false,
@@ -81,8 +111,17 @@ app.use((error, req, res, next) => {
   next(error);
 });
 
+// Error handler
+app.use(errorHandler);
 
+const PORT = process.env.PORT || 5000;
 
 const server = app.listen(PORT, () => {
   console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (err, promise) => {
+  console.log(`Error: ${err.message}`);
+  server.close(() => process.exit(1));
 });
