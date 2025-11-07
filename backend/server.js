@@ -26,6 +26,7 @@ import postRoute from './routes/post.js';
 import userRoute from './routes/user.js';
 import taskRoute from './routes/taskRoutes.js';
 import logsRoute from './routes/logs.js';
+import idCardRoute from './routes/idCard.js';
 
 // Load env vars
 const result = dotenv.config();
@@ -72,6 +73,7 @@ app.use('/api/posts', postRoute);
 app.use('/api/user', userRoute);
 app.use('/api/tasks', taskRoute);
 app.use('/api/logs', logsRoute);
+app.use('/api/idcard', idCardRoute);
 
 // Health check
 app.get('/', (req, res) => {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Navbar from './shared/Navbar';
 import GoBackButton from './shared/GoBackButton';
@@ -130,7 +131,12 @@ const Profile = () => {
             <div>
               <h1 className="text-3xl font-bold text-white">My Profile</h1>
             </div>
-            <GoBackButton className="text-white" />
+            <div className="flex space-x-3">
+              <Link to="/id-card" className="px-4 py-2 bg-white text-[#FF6900] rounded-lg hover:bg-gray-100 transition">
+                View ID Card
+              </Link>
+              <GoBackButton className="text-white" />
+            </div>
           </div>
 
           {message && (

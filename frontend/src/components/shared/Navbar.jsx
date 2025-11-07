@@ -4,7 +4,15 @@ import { useAuth } from "../../context/AuthContext";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
-  const [isOpen, setIsOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  const toggleDropdown = () => {
+    setDropdownOpen(!dropdownOpen);
+  };
+
+  const closeDropdown = () => {
+    setDropdownOpen(false);
+  };
 
   return (
     <nav className="bg-white shadow">
@@ -20,34 +28,59 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center space-x-4">
-            <Link
-              to="/profile"
-              className="flex items-center space-x-2 hover:text-[#FF6900] transition"
-            >
-              {user?.profileImage ? (
-                <img
-                  src={user.profileImage}
-                  alt={user.name}
-                  className="w-8 h-8 rounded-full object-cover"
-                />
-              ) : (
-                <div className="w-8 h-8 bg-[#FF6900] rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-medium">
-                    {user?.name?.charAt(0)?.toUpperCase()}
-                  </span>
+            {/* User Profile Dropdown */}
+            <div className="relative">
+              <button
+                onClick={toggleDropdown}
+                className="flex items-center space-x-2 hover:text-[#FF6900] transition"
+              >
+                {user?.profileImage ? (
+                  <img
+                    src={user.profileImage}
+                    alt={user.name}
+                    className="w-8 h-8 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-8 h-8 bg-[#FF6900] rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-medium">
+                      {user?.name?.charAt(0)?.toUpperCase()}
+                    </span>
+                  </div>
+                )}
+                <span className="text-sm font-medium hidden sm:block">
+                  {user?.name}
+                </span>
+              </button>
+              
+              {/* Dropdown menu */}
+              {dropdownOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                  <Link
+                    to="/profile"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    onClick={closeDropdown}
+                  >
+                    Profile
+                  </Link>
+                  <Link
+                    to="/id-card"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    onClick={closeDropdown}
+                  >
+                    ID Card
+                  </Link>
+                  <button
+                    onClick={() => {
+                      logout();
+                      closeDropdown();
+                    }}
+                    className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                  >
+                    Logout
+                  </button>
                 </div>
               )}
-              <span className="text-sm font-medium hidden sm:block">
-                {user?.name}
-              </span>
-            </Link>
-
-            <button
-              onClick={logout}
-              className="px-4 py-2 text-sm font-medium text-red-600 hover:text-red-700 transition"
-            >
-              Logout
-            </button>
+            </div>
           </div>
         </div>
       </div>

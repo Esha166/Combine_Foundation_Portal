@@ -8,6 +8,7 @@ import Landing from "./components/Landing";
 import Login from "./components/Login";
 import Dashboard from "./components/Dashboard";
 import Profile from "./components/Profile";
+import IdCard from "./components/IdCard";
 import ChangePassword from "./components/ChangePassword";
 import VolunteerApplicationForm from "./components/VolunteerApplicationForm";
 
@@ -65,6 +66,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <Profile />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/id-card"
+            element={
+              <ProtectedRoute>
+                <IdCard />
               </ProtectedRoute>
             }
           />
