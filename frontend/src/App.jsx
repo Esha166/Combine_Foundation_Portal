@@ -9,8 +9,14 @@ import Login from "./components/Login";
 import Dashboard from "./components/Dashboard";
 import Profile from "./components/Profile";
 import IdCard from "./components/IdCard";
+import Lectures from "./components/Lectures";
 import ChangePassword from "./components/ChangePassword";
 import VolunteerApplicationForm from "./components/VolunteerApplicationForm";
+
+// Admin components
+import AdminDashboard from "./components/admin/AdminDashboard";
+import LectureForm from "./components/admin/LectureForm";
+import LectureManagement from "./components/admin/LectureManagement";
 
 // Admin pages
 import Courses from "./components/admin/Courses";
@@ -75,6 +81,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <IdCard />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/lectures"
+            element={
+              <ProtectedRoute>
+                <Lectures />
               </ProtectedRoute>
             }
           />
@@ -196,6 +211,42 @@ function App() {
             element={
               <ProtectedRoute roles={["superadmin", "developer"]}>
                 <AdminManagement />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/lectures"
+            element={
+              <ProtectedRoute roles={["admin", "superadmin", "developer"]}>
+                <LectureManagement />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/lectures/new"
+            element={
+              <ProtectedRoute roles={["admin", "superadmin", "developer"]}>
+                <LectureForm />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/lectures/edit/:id"
+            element={
+              <ProtectedRoute roles={["admin", "superadmin", "developer"]}>
+                <LectureForm />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute roles={["admin", "superadmin", "developer"]}>
+                <AdminDashboard />
               </ProtectedRoute>
             }
           />

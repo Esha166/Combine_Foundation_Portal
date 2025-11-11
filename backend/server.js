@@ -15,6 +15,7 @@ import './models/Volunteer.js';
 import './models/Admin.js';
 import './models/SuperAdmin.js';
 import './models/Developer.js';
+import './models/Lecture.js';
 
 // routes
 import authRoute from './routes/auth.js';
@@ -27,6 +28,7 @@ import userRoute from './routes/user.js';
 import taskRoute from './routes/taskRoutes.js';
 import logsRoute from './routes/logs.js';
 import idCardRoute from './routes/idCard.js';
+import lectureRoute from './routes/lecture.js';
 
 // Load env vars
 const result = dotenv.config();
@@ -74,6 +76,7 @@ app.use('/api/user', userRoute);
 app.use('/api/tasks', taskRoute);
 app.use('/api/logs', logsRoute);
 app.use('/api/idcard', idCardRoute);
+app.use('/api/lectures', lectureRoute);
 
 // Health check
 app.get('/', (req, res) => {
