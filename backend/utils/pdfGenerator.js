@@ -23,16 +23,16 @@ const addIdCardFront = (doc, userData, idCardData) => {
   if (userData.profileImage) {
     try {
       // If it's a URL, PDFKit will handle it. If it's a local path, it will work too.
-      doc.image(userData.profileImage, 105, 105, { width: 140, height: 140 });
+      doc.image(userData.profileImage, 105, 105, { width: 170, height: 170 });
     } catch (error) {
       // If image fails to load, keep the rectangle as placeholder
       console.log('Failed to load profile image:', error);
       // Add a text placeholder
-      doc.fontSize(10).fillColor('#777').text('Profile Photo', 140, 165, { width: 70, align: 'center' });
+      doc.fontSize(10).fillColor('#777').text('Profile Photo', 140, 185, { width: 90, align: 'center' });
     }
   } else {
     // Add a text placeholder if no profile image exists
-    doc.fontSize(10).fillColor('#777').text('Profile Photo', 140, 165, { width: 70, align: 'center' });
+    doc.fontSize(10).fillColor('#777').text('Profile Photo', 140, 185, { width: 90, align: 'center' });
   }
   
   // Add name
@@ -62,23 +62,24 @@ const addIdCardFront = (doc, userData, idCardData) => {
 
 // Function to add the back side of the ID card to the PDF
 const addIdCardBack = (doc, userData, idCardData) => {
-  // Add "Volunteer Information" heading
-  doc.fontSize(18).fillColor('#000').text('VOLUNTEER INFORMATION', 50, 50, { align: 'center', width: 500 });
+  // Add "ID Card Information" heading
+  doc.fontSize(18).fillColor('#0066CC').text('ID CARD INFORMATION', 50, 50, { align: 'center', width: 500 });
   
-  // Add QR code
+  // Add QR code with label
+  doc.fontSize(12).fillColor('#000').text('QR Code - Verify ID:', 50, 100, { width: 200 });
   if (idCardData.qrCode) {
     try {
-      doc.image(idCardData.qrCode, 250, 100, { width: 100, height: 100 });
+      doc.image(idCardData.qrCode, 250, 85, { width: 120, height: 120 });
     } catch (error) {
       console.log('Failed to load QR code image:', error);
       // Add QR code placeholder if image fails
-      doc.rect(250, 100, 100, 100).stroke();
-      doc.fontSize(10).text('QR Code', 275, 140, { align: 'center', width: 100 });
+      doc.rect(250, 85, 120, 120).stroke();
+      doc.fontSize(10).fillColor('#000').text('QR Code', 265, 135, { align: 'center', width: 120 });
     }
   } else {
     // Add QR code placeholder if no QR code exists
-    doc.rect(250, 100, 100, 100).stroke();
-    doc.fontSize(10).text('QR Code', 275, 140, { align: 'center', width: 100 });
+    doc.rect(250, 85, 120, 120).stroke();
+    doc.fontSize(10).fillColor('#000').text('QR Code', 265, 135, { align: 'center', width: 120 });
   }
   
   // Add name again
@@ -100,8 +101,9 @@ const addIdCardBack = (doc, userData, idCardData) => {
   doc.fontSize(12).fillColor('#000').text('Emergency Contact: +92-300-1234567', 50, 370, { width: 500 });
   
   // Add footer
-  doc.moveTo(50, 420).lineTo(550, 420).stroke();
-  doc.fontSize(10).fillColor('#555').text('COMBINE Foundation - Empowering Communities', 50, 430, { align: 'center', width: 500 });
+  doc.moveTo(50, 440).lineTo(550, 440).stroke({ width: 0.5 });
+  doc.fontSize(10).fillColor('#555').text('COMBINE Foundation - Empowering Communities Through Education', 50, 450, { align: 'center', width: 500 });
+  doc.fontSize(9).fillColor('#777').text('This ID card is valid only with signature of authorized person and official seal', 50, 465, { align: 'center', width: 500 });
 };
 
 // Function to generate the complete ID card PDF

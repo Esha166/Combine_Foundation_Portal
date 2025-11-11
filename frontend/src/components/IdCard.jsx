@@ -203,7 +203,7 @@ const IdCard = () => {
               </div>
               
               {/* Back Side Card */}
-              <div className="bg-gray-100 p-4 rounded-xl">
+              <div className="bg-gray-100 p-4 rounded-xl mb-6 flex justify-center">
                 <div className="bg-white rounded-2xl shadow-2xl overflow-hidden w-full max-w-xs" style={{height: '400px'}} >
                   <div className="flex flex-col items-center justify-center h-full p-2">
                     <h2 className="text-lg font-bold text-gray-900 mb-2">Volunteer Information</h2>
