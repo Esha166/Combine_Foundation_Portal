@@ -3,19 +3,22 @@ import { useAuth } from "../context/AuthContext";
 import { Link } from "react-router-dom";
 import Navbar from "./shared/Navbar";
 import GoBackButton from "./shared/GoBackButton";
+import DashboardWithSidebar from "./DashboardWithSidebar";
 
 const Dashboard = () => {
   const { user } = useAuth();
 
+  // For volunteer and trustee, use the sidebar layout
+  if (user?.role === 'volunteer' || user?.role === 'trustee') {
+    return <DashboardWithSidebar />;
+  }
+
+  // For other roles, use the original layout
   const getDashboardContent = () => {
     switch (user?.role) {
-      case "volunteer":
-        return <VolunteerDashboard />;
       case "admin":
       case "superadmin":
         return <AdminDashboard />;
-      case "trustee":
-        return <TrusteeDashboard />;
       case "developer":
         return <DeveloperDashboard />;
       default:
