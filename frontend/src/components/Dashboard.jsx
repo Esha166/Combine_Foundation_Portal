@@ -122,6 +122,26 @@ const VolunteerDashboard = () => {
         </Link>
 
         <Link
+          to="/lectures"
+          className="bg-white p-6 rounded-xl shadow hover:shadow-lg transition"
+        >
+          <div className="w-12 h-12 bg-[#FF6900] rounded-lg flex items-center justify-center mb-4">
+            <svg
+              className="w-6 h-6 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold text-[#FF6900] mb-2">
+            Lectures
+          </h3>
+          <p className="text-gray-600 text-sm">Access educational lectures</p>
+        </Link>
+
+        <Link
           to="/volunteer/tasks"
           className="bg-white p-6 rounded-xl shadow hover:shadow-lg transition"
         >
@@ -441,6 +461,26 @@ const TrusteeDashboard = () => {
             View Courses
           </h3>
           <p className="text-gray-600 text-sm">See all active courses</p>
+        </Link>
+
+        <Link
+          to="/lectures"
+          className="bg-white p-6 rounded-xl shadow hover:shadow-lg transition"
+        >
+          <div className="w-12 h-12 bg-[#FF6900] rounded-lg flex items-center justify-center mb-4">
+            <svg
+              className="w-6 h-6 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold text-[#FF6900] mb-2">
+            Lectures
+          </h3>
+          <p className="text-gray-600 text-sm">Access educational lectures</p>
         </Link>
       </div>
     </div>

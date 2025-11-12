@@ -88,7 +88,11 @@ const VolunteerTasks = () => {
     if (!editingTask.title.trim()) return;
 
     try {
-      const response = await taskService.updateTask(editingTask._id || editingTask.id, editingTask);
+      const response = await taskService.updateTask(editingTask._id || editingTask.id, {
+        ...editingTask,
+        _id: undefined, // Remove _id from the payload to avoid issues
+        id: undefined   // Remove id from the payload to avoid issues
+      });
       const updatedTask = response.data.data || response.data;
       
       setTasks(tasks.map(task => 
@@ -519,12 +523,12 @@ const VolunteerTasks = () => {
                         'border-green-500'
                       }`}
                     >
-                      <div className="flex items-start justify-between">
+                      <div className="flex items-start justify-between ">
                         <div className="flex items-start space-x-4">
                           <input
                             type="checkbox"
                             checked={task.completed}
-                            onChange={() => toggleTaskCompletion(task.id)}
+                            onChange={() => toggleTaskCompletion(task._id || task.id)}
                             className="mt-1 h-5 w-5 text-[#FF6900] rounded focus:ring-[#FF6900]"
                           />
                           <div>
@@ -571,7 +575,7 @@ const VolunteerTasks = () => {
                             </svg>
                           </button>
                           <button
-                            onClick={() => deleteTask(task.id)}
+                            onClick={() => deleteTask(task._id || task.id)}
                             className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg"
                           >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -605,7 +609,7 @@ const VolunteerTasks = () => {
                         <input
                           type="checkbox"
                           checked={task.completed}
-                          onChange={() => toggleTaskCompletion(task.id)}
+                          onChange={() => toggleTaskCompletion(task._id || task.id)}
                           className="mt-1 h-5 w-5 text-[#FF6900] rounded focus:ring-[#FF6900]"
                         />
                         <div>
@@ -640,7 +644,7 @@ const VolunteerTasks = () => {
                           </svg>
                         </button>
                         <button
-                          onClick={() => deleteTask(task.id)}
+                          onClick={() => deleteTask(task._id || task.id)}
                           className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg"
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
