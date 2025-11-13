@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import Navbar from './shared/Navbar';
+import Sidebar from './shared/Sidebar';
 import GoBackButton from './shared/GoBackButton';
 import api from '../services/api';
 
@@ -122,10 +122,11 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
+      <Sidebar role={user?.role} />
       
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+      <main className="flex-1 ml-64 p-6 overflow-y-auto">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           {/* Header */}
           <div className="bg-gradient-to-r from-[#FF6900] to-[#ae4b04] px-8 py-6 flex justify-between items-center">
             <div>
@@ -610,7 +611,8 @@ const Profile = () => {
           </div>
         </div>
       </div>
-    </div>
+    </main>
+  </div>
   );
 };
 
