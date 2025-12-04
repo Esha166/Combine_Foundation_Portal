@@ -14,11 +14,14 @@ volunteerRoute.post('/apply', validate(createVolunteerValidator), createVoluntee
 volunteerRoute.use(protect);
 volunteerRoute.use(roleCheck('admin', 'superadmin', 'developer'));
 
-volunteerRoute.get('/pending', getPendingVolunteers);
-volunteerRoute.get('/', getAllVolunteers);
-volunteerRoute.post('/invite', inviteVolunteer); // Route for inviting volunteers
-volunteerRoute.post('/:id/approve', approveVolunteer);
-volunteerRoute.post('/:id/reject', validate(rejectVolunteerValidator), rejectVolunteer);
-volunteerRoute.delete('/:id', deleteVolunteer);
+// Apply permission check for admins
+import { checkPermission } from '../middleware/checkPermission.js';
+
+volunteerRoute.get('/pending', checkPermission('manage_volunteers'), getPendingVolunteers);
+volunteerRoute.get('/', checkPermission('manage_volunteers'), getAllVolunteers);
+volunteerRoute.post('/invite', checkPermission('manage_volunteers'), inviteVolunteer); 
+volunteerRoute.post('/:id/approve', checkPermission('manage_volunteers'), approveVolunteer);
+volunteerRoute.post('/:id/reject', checkPermission('manage_volunteers'), validate(rejectVolunteerValidator), rejectVolunteer);
+volunteerRoute.delete('/:id', checkPermission('manage_volunteers'), deleteVolunteer);
 
 export default volunteerRoute;

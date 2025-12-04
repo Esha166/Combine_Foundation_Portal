@@ -14,8 +14,11 @@ courseRoute.get('/:id', getCourse);
 courseRoute.use(protect);
 courseRoute.use(roleCheck('admin', 'superadmin', 'developer'));
 
-courseRoute.post('/', upload.single('image'), createCourse);
-courseRoute.put('/:id', upload.single('image'), updateCourse);
-courseRoute.delete('/:id', deleteCourse);
+// Apply permission check for admins
+import { checkPermission } from '../middleware/checkPermission.js';
+
+courseRoute.post('/', checkPermission('manage_courses'), upload.single('image'), createCourse);
+courseRoute.put('/:id', checkPermission('manage_courses'), upload.single('image'), updateCourse);
+courseRoute.delete('/:id', checkPermission('manage_courses'), deleteCourse);
 
 export default courseRoute;

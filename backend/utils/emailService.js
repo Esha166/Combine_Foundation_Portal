@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+const frontend_url = 'https://combine-foundation-portal-frontend.vercel.app/login'
 
 // Create reusable transporter
 const createTransporter = () => {
@@ -34,7 +35,7 @@ const sendApprovalEmail = async (volunteer, tempPassword) => {
           <p><strong>Important:</strong> Please change your password after your first login for security purposes.</p>
           
           <p>
-            <a href="${process.env.FRONTEND_URL}/login" 
+            <a href="${frontend_url}" 
                style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin-top: 10px;">
               Login to Portal
             </a>
@@ -141,7 +142,7 @@ const sendAdminCredentialsEmail = async (admin, tempPassword) => {
           <p><strong>Important:</strong> Please change your password immediately after your first login.</p>
           
           <p>
-            <a href="${process.env.FRONTEND_URL}/login" 
+            <a href="${frontend_url}" 
                style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin-top: 10px;">
               Login to Portal
             </a>
@@ -247,7 +248,7 @@ const sendInvitationEmail = async (volunteer, tempPassword) => {
           <p><strong>Important:</strong> Please change your password after your first login for security purposes.</p>
           
           <p>
-            <a href="${process.env.FRONTEND_URL}/login" 
+            <a href="${frontend_url}" 
                style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin-top: 10px;">
               Login to Portal
             </a>
