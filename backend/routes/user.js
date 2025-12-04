@@ -92,6 +92,7 @@ userRoute.put('/profile/image', upload.single('image'), async (req, res, next) =
 // Update profile details
 userRoute.put('/profile', async (req, res, next) => {
   try {
+    console.log('Update Profile Request Body:', req.body);
     const { 
       name, 
       phone, 
@@ -111,31 +112,60 @@ userRoute.put('/profile', async (req, res, next) => {
     } = req.body;
     
     const user = await User.findById(req.user.id);
+    console.log('Found User for Update:', user._id, 'Role:', user.role, 'Model:', user.constructor.modelName);
 
-    if (name) user.name = name;
-    if (phone) user.phone = phone;
-    if (gender) user.gender = gender;
-    if (cnic) user.cnic = cnic;
-    if (age) user.age = parseInt(age, 10);
-    if (city) user.city = city;
-    if (education) user.education = education;
-    if (institute) user.institute = institute;
-    if (socialMedia) user.socialMedia = socialMedia;
-    if (skills) user.skills = Array.isArray(skills) ? skills : (typeof skills === 'string' ? skills.split(',').map(item => item.trim()) : skills);
-    if (expertise) user.expertise = Array.isArray(expertise) ? expertise : (typeof expertise === 'string' ? expertise.split(',').map(item => item.trim()) : expertise);
-    if (priorExperience) user.priorExperience = priorExperience;
-    if (experienceDesc) user.experienceDesc = experienceDesc;
-    if (availabilityDays) user.availabilityDays = Array.isArray(availabilityDays) ? availabilityDays : (typeof availabilityDays === 'string' ? availabilityDays.split(',').map(item => item.trim()) : availabilityDays);
-    if (availabilityHours) user.availabilityHours = availabilityHours;
+    // Helper to check if value is meaningful (not undefined, not null, not empty string)
+    const hasValue = (val) => val !== undefined && val !== null && val !== '';
 
-    await user.save();
+    if (hasValue(name)) user.name = name;
+    if (hasValue(phone)) user.phone = phone;
+    if (hasValue(gender)) user.gender = gender;
+    if (hasValue(cnic)) user.cnic = cnic;
+    
+    // Special handling for age - parse and validate
+    if (hasValue(age)) {
+      const parsedAge = parseInt(age, 10);
+      if (!isNaN(parsedAge)) {
+        user.age = parsedAge;
+      }
+    }
+    
+    if (hasValue(city)) user.city = city;
+    if (hasValue(education)) user.education = education;
+    if (hasValue(institute)) user.institute = institute;
+    if (hasValue(socialMedia)) user.socialMedia = socialMedia;
+    
+    // Handle arrays - check if they have actual content
+    if (skills !== undefined) {
+      const skillsArray = Array.isArray(skills) ? skills : (typeof skills === 'string' ? skills.split(',').map(item => item.trim()) : []);
+      user.skills = skillsArray.filter(s => s); // Remove empty strings
+    }
+    
+    if (expertise !== undefined) {
+      const expertiseArray = Array.isArray(expertise) ? expertise : (typeof expertise === 'string' ? expertise.split(',').map(item => item.trim()) : []);
+      user.expertise = expertiseArray.filter(e => e); // Remove empty strings
+    }
+    
+    if (hasValue(priorExperience)) user.priorExperience = priorExperience;
+    if (hasValue(experienceDesc)) user.experienceDesc = experienceDesc;
+    
+    if (availabilityDays !== undefined) {
+      const daysArray = Array.isArray(availabilityDays) ? availabilityDays : (typeof availabilityDays === 'string' ? availabilityDays.split(',').map(item => item.trim()) : []);
+      user.availabilityDays = daysArray.filter(d => d); // Remove empty strings
+    }
+    
+    if (hasValue(availabilityHours)) user.availabilityHours = availabilityHours;
+
+    const updatedUser = await user.save();
+    console.log('Updated User:', updatedUser);
 
     res.status(200).json({
       success: true,
       message: 'Profile updated',
-      data: user
+      data: updatedUser
     });
   } catch (error) {
+    console.error('Profile Update Error:', error);
     next(error);
   }
 });

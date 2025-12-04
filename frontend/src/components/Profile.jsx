@@ -33,6 +33,7 @@ const Profile = () => {
 
   useEffect(() => {
     if (user) {
+      console.log('Loading user data into form:', user);
       setFormData({
         name: user.name || '',
         phone: user.phone || '',
@@ -50,6 +51,7 @@ const Profile = () => {
         availabilityDays: Array.isArray(user.availabilityDays) ? user.availabilityDays : (user.availabilityDays ? user.availabilityDays.split(',') : []),
         availabilityHours: user.availabilityHours || ''
       });
+      console.log('Form data updated');
     }
   }, [user]);
 
@@ -99,8 +101,36 @@ const Profile = () => {
     
     try {
       setLoading(true);
+      console.log('Submitting profile update:', formData);
       const response = await api.put('/user/profile', formData);
-      updateUser(response.data.data);
+      console.log('Profile update response:', response.data);
+      
+      // Extract the updated user data from response
+      const updatedUserData = response.data.data;
+      console.log('Updated user data:', updatedUserData);
+      
+      // Update the auth context with new data
+      updateUser(updatedUserData);
+      
+      // Update local form state to match the saved data
+      setFormData({
+        name: updatedUserData.name || '',
+        phone: updatedUserData.phone || '',
+        gender: updatedUserData.gender || '',
+        cnic: updatedUserData.cnic || '',
+        age: updatedUserData.age || '',
+        city: updatedUserData.city || '',
+        education: updatedUserData.education || '',
+        institute: updatedUserData.institute || '',
+        socialMedia: updatedUserData.socialMedia || '',
+        skills: Array.isArray(updatedUserData.skills) ? updatedUserData.skills : (updatedUserData.skills ? updatedUserData.skills.split(',') : []),
+        expertise: Array.isArray(updatedUserData.expertise) ? updatedUserData.expertise : (updatedUserData.expertise ? updatedUserData.expertise.split(',') : []),
+        priorExperience: updatedUserData.priorExperience || '',
+        experienceDesc: updatedUserData.experienceDesc || '',
+        availabilityDays: Array.isArray(updatedUserData.availabilityDays) ? updatedUserData.availabilityDays : (updatedUserData.availabilityDays ? updatedUserData.availabilityDays.split(',') : []),
+        availabilityHours: updatedUserData.availabilityHours || ''
+      });
+      
       setEditing(false);
       setMessage('Profile updated successfully!');
       setMessageType('success');
@@ -109,6 +139,7 @@ const Profile = () => {
         setMessageType('');
       }, 5000);
     } catch (error) {
+      console.error('Profile update error:', error);
       setMessage(error.response?.data?.message || 'Failed to update profile');
       setMessageType('error');
       setTimeout(() => {

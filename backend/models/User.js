@@ -34,7 +34,56 @@ const userSchema = new mongoose.Schema({
     enum: ['volunteer', 'admin', 'superadmin', 'trustee', 'developer'],
     required: true
   },
+  // Common profile fields (available for all roles)
+  gender: {
+    type: String,
+    enum: ['male', 'female', 'other', 'prefer_not_to_say'],
+    trim: true
+  },
+  cnic: {
+    type: String,
+    trim: true
+  },
+  age: {
+    type: Number
+  },
+  city: {
+    type: String,
+    trim: true
+  },
   education: {
+    type: String,
+    trim: true
+  },
+  institute: {
+    type: String,
+    trim: true
+  },
+  socialMedia: {
+    type: String,
+    trim: true
+  },
+  skills: [{
+    type: String,
+    trim: true
+  }],
+  expertise: [{
+    type: String,
+    trim: true
+  }],
+  priorExperience: {
+    type: String,
+    trim: true
+  },
+  experienceDesc: {
+    type: String,
+    trim: true
+  },
+  availabilityDays: [{
+    type: String,
+    trim: true
+  }],
+  availabilityHours: {
     type: String,
     trim: true
   },

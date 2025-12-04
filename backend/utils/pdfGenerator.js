@@ -1,116 +1,241 @@
 import PDFDocument from 'pdfkit';
-import { generateQRCode, generateQRCodeURL } from '../utils/qrCodeUtils.js';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Helper to fetch image buffer from URL
+const fetchImage = async (src) => {
+  if (!src) return null;
+  
+  // If it's a local path (not starting with http), return it directly
+  if (!src.startsWith('http')) {
+    return src;
+  }
+
+  try {
+    const response = await fetch(src);
+    if (!response.ok) throw new Error(`Failed to fetch image: ${response.statusText}`);
+    const arrayBuffer = await response.arrayBuffer();
+    return Buffer.from(arrayBuffer);
+  } catch (error) {
+    console.error('Error fetching image:', error);
+    return null;
+  }
+};
+
 // Function to add the front side of the ID card to the PDF
-const addIdCardFront = (doc, userData, idCardData) => {
-  // Set font and text styles
-  doc.fontSize(14).text('COMBINE Foundation', 50, 50, { align: 'center', width: 500 });
+const addIdCardFront = async (doc, userData, idCardData) => {
+  const cardX = 50;
+  const cardY = 50;
+  const cardWidth = 350;
+  const cardHeight = 500;
   
-  // Add a decorative line
-  doc.moveTo(50, 80).lineTo(550, 80).stroke();
+  // Draw Card Container (White background with border)
+  doc.roundedRect(cardX, cardY, cardWidth, cardHeight, 15)
+     .fillAndStroke('#ffffff', '#d1d5db');
+
+  // --- Header Section ---
+  doc.save();
+  doc.roundedRect(cardX, cardY, cardWidth, 110, 15)
+     .clip();
+  doc.rect(cardX, cardY, cardWidth, 110)
+     .fill('#FF6900');
+  doc.restore();
+
+  // Logo (White circle background)
+  const logoY = cardY + 25;
+  doc.circle(cardX + cardWidth / 2, logoY + 30, 35)
+     .fill('#ffffff');
   
-  // Add profile image placeholder or actual image if available
-  // For now, we'll add a placeholder rectangle for the profile image
-  doc.roundedRect(100, 100, 150, 150, 10);
-  doc.strokeColor('#000').stroke();
-  
-  // Add profile image (if available)
-  if (userData.profileImage) {
+  // Load Logo
+  const logoPath = path.join(__dirname, '../../frontend/public/logo.png');
+  if (fs.existsSync(logoPath)) {
     try {
-      // If it's a URL, PDFKit will handle it. If it's a local path, it will work too.
-      doc.image(userData.profileImage, 105, 105, { width: 170, height: 170 });
-    } catch (error) {
-      // If image fails to load, keep the rectangle as placeholder
-      console.log('Failed to load profile image:', error);
-      // Add a text placeholder
-      doc.fontSize(10).fillColor('#777').text('Profile Photo', 140, 185, { width: 90, align: 'center' });
+      doc.image(logoPath, cardX + cardWidth / 2 - 25, logoY + 5, { width: 50, height: 50 });
+    } catch (err) {
+      console.error('Error loading logo:', err);
     }
-  } else {
-    // Add a text placeholder if no profile image exists
-    doc.fontSize(10).fillColor('#777').text('Profile Photo', 140, 185, { width: 90, align: 'center' });
   }
-  
-  // Add name
-  doc.fontSize(20).fillColor('#000').text(userData.name, 280, 120, { width: 250 });
-  
-  // Add expertise/title
-  if (userData.expertise && Array.isArray(userData.expertise) && userData.expertise.length > 0) {
-    doc.fontSize(14).fillColor('#555').text(`Expertise: ${userData.expertise.join(', ')}`, 280, 150, { width: 250 });
-  } else if (userData.education) {
-    doc.fontSize(14).fillColor('#555').text(`Title: ${userData.education}`, 280, 150, { width: 250 });
-  } else {
-    doc.fontSize(14).fillColor('#555').text(`Role: ${userData.role}`, 280, 150, { width: 250 });
+
+  // "COMBINE FOUNDATION" Text
+  doc.fontSize(16)
+     .font('Helvetica-Bold')
+     .fillColor('#ffffff')
+     .text('COMBINE FOUNDATION', cardX, logoY + 75, {
+       width: cardWidth,
+       align: 'center'
+     });
+
+  // --- Profile Image Section ---
+  const photoY = cardY + 140;
+  const photoSize = 110;
+  const photoX = cardX + (cardWidth - photoSize) / 2;
+
+  // Draw circle border for photo
+  doc.circle(photoX + photoSize / 2, photoY + photoSize / 2, photoSize / 2 + 4)
+     .lineWidth(4)
+     .strokeColor('#FF6900')
+     .stroke();
+
+  // Draw Profile Photo
+  try {
+    const profileImageBuffer = await fetchImage(userData.profileImage);
+    if (profileImageBuffer) {
+      doc.save();
+      doc.circle(photoX + photoSize / 2, photoY + photoSize / 2, photoSize / 2)
+         .clip();
+      doc.image(profileImageBuffer, photoX, photoY, { width: photoSize, height: photoSize });
+      doc.restore();
+    } else {
+      // Placeholder if no image
+      doc.circle(photoX + photoSize / 2, photoY + photoSize / 2, photoSize / 2)
+         .fill('#f3f4f6');
+      doc.fontSize(32).fillColor('#FF6900').text(
+        userData.name ? userData.name.charAt(0).toUpperCase() : 'U',
+        cardX, photoY + 38, { width: cardWidth, align: 'center' }
+      );
+    }
+  } catch (err) {
+    console.error('Error drawing profile image:', err);
   }
+
+  // --- User Info Section ---
+  const infoY = photoY + photoSize + 25;
   
-  // Add ID number
-  doc.fontSize(14).fillColor('#000').text(`ID: ${idCardData.idNumber}`, 280, 180, { width: 250 });
+  // Name
+  doc.fontSize(18)
+     .font('Helvetica-Bold')
+     .fillColor('#111827')
+     .text(userData.name, cardX + 20, infoY, { width: cardWidth - 40, align: 'center' });
+
+  // Role / Expertise
+  doc.fontSize(11)
+     .font('Helvetica')
+     .fillColor('#6B7280')
+     .text(
+       (userData.expertise && userData.expertise.length > 0) ? userData.expertise.join(' & ') : (userData.role || 'Volunteer').toUpperCase(),
+       cardX + 20, infoY + 25, { width: cardWidth - 40, align: 'center' }
+     );
+
+  // Divider
+  doc.moveTo(cardX + 50, infoY + 50)
+     .lineTo(cardX + cardWidth - 50, infoY + 50)
+     .strokeColor('#e5e7eb')
+     .lineWidth(1)
+     .stroke();
+
+  // Details Table
+  const detailsY = infoY + 65;
+  const labelX = cardX + 50;
   
-  // Add joining date
-  doc.fontSize(14).fillColor('#555').text(`Joining Date: ${new Date(userData.createdAt).toLocaleDateString()}`, 280, 210, { width: 250 });
-  
-  // Add phone number
-  doc.fontSize(14).fillColor('#555').text(`Phone: ${userData.phone || 'N/A'}`, 280, 240, { width: 250 });
-  
-  // Add another decorative line
-  doc.moveTo(50, 280).lineTo(550, 280).stroke();
+  const addDetailRow = (label, value, y) => {
+    doc.fontSize(10).font('Helvetica-Bold').fillColor('#4B5563').text(label, labelX, y);
+    doc.fontSize(10).font('Helvetica').fillColor('#111827').text(value, cardX + 50, y, { 
+      width: cardWidth - 100, 
+      align: 'right' 
+    });
+    doc.moveTo(labelX, y + 18).lineTo(cardX + cardWidth - 50, y + 18).strokeColor('#f3f4f6').lineWidth(0.5).stroke();
+  };
+
+  addDetailRow('ID:', idCardData.idNumber || 'N/A', detailsY);
+  addDetailRow('Join Date:', new Date(userData.createdAt).toLocaleDateString(), detailsY + 30);
+  addDetailRow('Phone:', userData.phone || 'N/A', detailsY + 60);
 };
 
 // Function to add the back side of the ID card to the PDF
-const addIdCardBack = (doc, userData, idCardData) => {
-  // Add "ID Card Information" heading
-  doc.fontSize(18).fillColor('#0066CC').text('ID CARD INFORMATION', 50, 50, { align: 'center', width: 500 });
+const addIdCardBack = async (doc, userData, idCardData) => {
+  const cardX = 450;
+  const cardY = 50;
+  const cardWidth = 350;
+  const cardHeight = 500;
+
+  // Draw Card Container
+  doc.roundedRect(cardX, cardY, cardWidth, cardHeight, 15)
+     .fillAndStroke('#ffffff', '#d1d5db');
+
+  const contentY = cardY + 40;
+
+  // Heading
+  doc.fontSize(16)
+     .font('Helvetica-Bold')
+     .fillColor('#111827')
+     .text('Volunteer Information', cardX, contentY, { width: cardWidth, align: 'center' });
+
+  // QR Code
+  const qrY = contentY + 50;
+  const qrSize = 120;
   
-  // Add QR code with label
-  doc.fontSize(12).fillColor('#000').text('QR Code - Verify ID:', 50, 100, { width: 200 });
-  if (idCardData.qrCode) {
-    try {
-      doc.image(idCardData.qrCode, 250, 85, { width: 120, height: 120 });
-    } catch (error) {
-      console.log('Failed to load QR code image:', error);
-      // Add QR code placeholder if image fails
-      doc.rect(250, 85, 120, 120).stroke();
-      doc.fontSize(10).fillColor('#000').text('QR Code', 265, 135, { align: 'center', width: 120 });
+  // QR Container
+  doc.roundedRect(cardX + (cardWidth - qrSize - 20) / 2, qrY - 10, qrSize + 20, qrSize + 20, 10)
+     .fillAndStroke('#ffffff', '#e5e7eb');
+
+  try {
+    const qrBuffer = await fetchImage(idCardData.qrCode);
+    if (qrBuffer) {
+      doc.image(qrBuffer, cardX + (cardWidth - qrSize) / 2, qrY, { width: qrSize, height: qrSize });
+    } else {
+      doc.rect(cardX + (cardWidth - qrSize) / 2, qrY, qrSize, qrSize).stroke();
+      doc.fontSize(9).text('QR Code', cardX, qrY + 50, { width: cardWidth, align: 'center' });
     }
-  } else {
-    // Add QR code placeholder if no QR code exists
-    doc.rect(250, 85, 120, 120).stroke();
-    doc.fontSize(10).fillColor('#000').text('QR Code', 265, 135, { align: 'center', width: 120 });
+  } catch (err) {
+    console.error('Error drawing QR code:', err);
   }
+
+  // Name again
+  doc.fontSize(14)
+     .font('Helvetica-Bold')
+     .fillColor('#111827')
+     .text(userData.name, cardX + 20, qrY + qrSize + 35, { width: cardWidth - 40, align: 'center' });
+
+  // Validity Info
+  const validY = qrY + qrSize + 65;
+  const labelX = cardX + 70;
   
-  // Add name again
-  doc.fontSize(14).fillColor('#000').text(`Name: ${userData.name}`, 50, 220, { width: 500 });
-  
-  // Add valid from date
-  doc.fontSize(14).fillColor('#555').text(`Valid From: ${new Date(idCardData.validFrom).toLocaleDateString()}`, 50, 250, { width: 500 });
-  
-  // Add valid thru date
-  doc.fontSize(14).fillColor('#555').text(`Valid Thru: ${new Date(idCardData.validThru).toLocaleDateString()}`, 50, 280, { width: 500 });
-  
-  // Add CNIC if available
+  doc.fontSize(10).font('Helvetica-Bold').fillColor('#4B5563').text('Valid From:', labelX, validY);
+  doc.font('Helvetica').fillColor('#111827').text(new Date(idCardData.validFrom).toLocaleDateString(), labelX + 80, validY);
+
+  doc.font('Helvetica-Bold').fillColor('#4B5563').text('Valid Thru:', labelX, validY + 25);
+  doc.font('Helvetica').fillColor('#111827').text(new Date(idCardData.validThru).toLocaleDateString(), labelX + 80, validY + 25);
+
+  // CNIC Field - ADDED
   if (userData.cnic) {
-    doc.fontSize(14).fillColor('#555').text(`CNIC: ${userData.cnic}`, 50, 310, { width: 500 });
+    doc.font('Helvetica-Bold').fillColor('#4B5563').text('CNIC:', labelX, validY + 50);
+    doc.font('Helvetica').fillColor('#111827').text(userData.cnic, labelX + 80, validY + 50);
   }
+
+  // Emergency Contact Box
+  const emergencyY = cardY + cardHeight - 110;
+  doc.roundedRect(cardX + 30, emergencyY, cardWidth - 60, 90, 10)
+     .fill('#EFF6FF');
+
+  doc.fontSize(10)
+     .font('Helvetica-Bold')
+     .fillColor('#1E3A8A')
+     .text('In Case of Emergency', cardX + 30, emergencyY + 18, { width: cardWidth - 60, align: 'center' });
   
-  // Add emergency contact information
-  doc.fontSize(12).fillColor('#000').text('In case of emergency, please contact COMBINE Foundation:', 50, 350, { width: 500 });
-  doc.fontSize(12).fillColor('#000').text('Emergency Contact: +92-300-1234567', 50, 370, { width: 500 });
-  
-  // Add footer
-  doc.moveTo(50, 440).lineTo(550, 440).stroke({ width: 0.5 });
-  doc.fontSize(10).fillColor('#555').text('COMBINE Foundation - Empowering Communities Through Education', 50, 450, { align: 'center', width: 500 });
-  doc.fontSize(9).fillColor('#777').text('This ID card is valid only with signature of authorized person and official seal', 50, 465, { align: 'center', width: 500 });
+  doc.fontSize(9)
+     .font('Helvetica')
+     .fillColor('#1E40AF')
+     .text('Please contact COMBINE FOUNDATION', cardX + 30, emergencyY + 40, { width: cardWidth - 60, align: 'center' });
+
+  doc.fontSize(12)
+     .font('Helvetica-Bold')
+     .fillColor('#1E3A8A')
+     .text('+92 316 378243', cardX + 30, emergencyY + 60, { width: cardWidth - 60, align: 'center' });
 };
 
 // Function to generate the complete ID card PDF
 export const generateIdCardPDF = async (userData, idCardData) => {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     try {
-      const doc = new PDFDocument({ size: 'A4', margin: 30 });
+      const doc = new PDFDocument({ 
+        size: [850, 600], // Custom size to fit both cards side by side
+        margin: 0
+      });
+      
       const buffers = [];
 
       doc.on('data', buffers.push.bind(buffers));
@@ -119,12 +244,9 @@ export const generateIdCardPDF = async (userData, idCardData) => {
         resolve(pdfData);
       });
 
-      // Add front side
-      addIdCardFront(doc, userData, idCardData);
-      
-      // Add a new page for the back side
-      doc.addPage();
-      addIdCardBack(doc, userData, idCardData);
+      // Add content
+      await addIdCardFront(doc, userData, idCardData);
+      await addIdCardBack(doc, userData, idCardData);
 
       doc.end();
     } catch (error) {
