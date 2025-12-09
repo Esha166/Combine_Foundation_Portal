@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import Sidebar from './shared/Sidebar';
+import DashboardLayout from './layout/DashboardLayout';
 import GoBackButton from './shared/GoBackButton';
 import api from '../services/api';
 
@@ -74,7 +74,7 @@ const Profile = () => {
       const response = await api.put('/user/profile/image', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      
+
       updateUser({ profileImage: response.data.data.profileImage });
       setImageFile(null);
       setImagePreview(null);
@@ -98,20 +98,20 @@ const Profile = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
       setLoading(true);
       console.log('Submitting profile update:', formData);
       const response = await api.put('/user/profile', formData);
       console.log('Profile update response:', response.data);
-      
+
       // Extract the updated user data from response
       const updatedUserData = response.data.data;
       console.log('Updated user data:', updatedUserData);
-      
+
       // Update the auth context with new data
       updateUser(updatedUserData);
-      
+
       // Update local form state to match the saved data
       setFormData({
         name: updatedUserData.name || '',
@@ -130,7 +130,7 @@ const Profile = () => {
         availabilityDays: Array.isArray(updatedUserData.availabilityDays) ? updatedUserData.availabilityDays : (updatedUserData.availabilityDays ? updatedUserData.availabilityDays.split(',') : []),
         availabilityHours: updatedUserData.availabilityHours || ''
       });
-      
+
       setEditing(false);
       setMessage('Profile updated successfully!');
       setMessageType('success');
@@ -152,22 +152,19 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Sidebar role={user?.role} />
-      
-      <main className="flex-1 ml-64 p-6 overflow-y-auto">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+    <DashboardLayout>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           {/* Header */}
-          <div className="bg-gradient-to-r from-[#FF6900] to-[#ae4b04] px-8 py-6 flex justify-between items-center">
+          <div className="bg-gradient-to-r from-[#FF6900] to-[#ae4b04] px-8 py-6 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
             <div>
               <h1 className="text-3xl font-bold text-white">My Profile</h1>
             </div>
             <div className="flex space-x-3">
-              <Link to="/id-card" className="px-4 py-2 bg-white text-[#FF6900] rounded-lg hover:bg-gray-100 transition">
+              <Link to="/id-card" className="px-4 py-2 bg-white text-[#FF6900] rounded-lg hover:bg-gray-100 transition whitespace-nowrap">
                 View ID Card
               </Link>
-              <GoBackButton className="text-white" />
+              <GoBackButton className="text-white bg-transparent border border-white hover:bg-white/10" />
             </div>
           </div>
 
@@ -177,10 +174,10 @@ const Profile = () => {
             </div>
           )}
 
-          <div className="p-8">
+          <div className="p-6 sm:p-8">
             {/* Profile Image Section */}
-            <div className="flex items-center space-x-6 mb-8 pb-8 border-b border-gray-200">
-              <div className="relative">
+            <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6 mb-8 pb-8 border-b border-gray-200">
+              <div className="relative shrink-0">
                 {imagePreview || user?.profileImage ? (
                   <img
                     src={imagePreview || user.profileImage}
@@ -196,14 +193,14 @@ const Profile = () => {
                 )}
               </div>
 
-              <div className="flex-1">
+              <div className="flex-1 text-center sm:text-left">
                 <h2 className="text-2xl font-bold text-gray-900">{user?.name}</h2>
-                <p className="text-gray-600">{user?.email}</p>
-                <p className="text-sm text-[#FF6900] capitalize mt-1">{user?.role}</p>
+                <p className="text-gray-600 mt-1 break-all">{user?.email}</p>
+                <p className="text-sm text-[#FF6900] capitalize mt-1 border border-[#FF6900] rounded-full px-3 py-0.5 inline-block">{user?.role}</p>
               </div>
 
-              <div>
-                <label className="cursor-pointer inline-block px-4 py-2 bg-[#FF6900] text-white rounded-lg hover:bg-primary-700 transition">
+              <div className="flex flex-col items-center sm:items-end space-y-2">
+                <label className="cursor-pointer px-4 py-2 bg-[#FF6900] text-white rounded-lg hover:bg-primary-700 transition w-full sm:w-auto text-center">
                   Change Photo
                   <input
                     type="file"
@@ -216,7 +213,7 @@ const Profile = () => {
                   <button
                     onClick={handleImageUpload}
                     disabled={loading}
-                    className="ml-2 px-4 py-2 bg-[#FF6900] text-white rounded-lg hover:bg-[#ff6a00d6] transition disabled:opacity-50"
+                    className="px-4 py-2 bg-[#FF6900] text-white rounded-lg hover:bg-[#ff6a00d6] transition disabled:opacity-50 w-full sm:w-auto"
                   >
                     Upload
                   </button>
@@ -226,14 +223,14 @@ const Profile = () => {
 
             {/* Profile Details Form */}
             <form onSubmit={(e) => {
-              // Prevent default form submission to avoid auto-submit on Enter key
               e.preventDefault();
               if (editing && !loading) {
                 handleSubmit(e);
               }
             }}>
               <div className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Fields... (Rest same as before but ensured responsive classes) */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Full Name
@@ -244,11 +241,10 @@ const Profile = () => {
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         disabled={!editing}
-                        className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          editing 
-                            ? 'bg-white border-blue-500 shadow-sm' 
-                            : 'bg-gray-50 border-gray-300 cursor-not-allowed'
-                        }`}
+                        className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${editing
+                          ? 'bg-white border-blue-500 shadow-sm'
+                          : 'bg-gray-50 border-gray-300 cursor-not-allowed'
+                          }`}
                         placeholder={editing ? "Enter your full name" : ""}
                       />
                     </div>
@@ -258,7 +254,7 @@ const Profile = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Email Address
                     </label>
-                    <div className="px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 min-h-12 flex items-center">
+                    <div className="px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 min-h-[48px] flex items-center break-all">
                       {user?.email || 'Not provided'}
                     </div>
                   </div>
@@ -273,11 +269,10 @@ const Profile = () => {
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                         disabled={!editing}
-                        className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          editing 
-                            ? 'bg-white border-blue-500 shadow-sm' 
-                            : 'bg-gray-50 border-gray-300 cursor-not-allowed'
-                        }`}
+                        className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${editing
+                          ? 'bg-white border-blue-500 shadow-sm'
+                          : 'bg-gray-50 border-gray-300 cursor-not-allowed'
+                          }`}
                         placeholder={editing ? "Enter your phone number" : ""}
                       />
                     </div>
@@ -287,7 +282,7 @@ const Profile = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Role
                     </label>
-                    <div className="px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 min-h-12 flex items-center capitalize">
+                    <div className="px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 min-h-[48px] flex items-center capitalize">
                       {user?.role?.toUpperCase() || 'Not provided'}
                     </div>
                   </div>
@@ -301,11 +296,10 @@ const Profile = () => {
                         value={formData.gender || ''}
                         onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
                         disabled={!editing}
-                        className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          editing 
-                            ? 'bg-white border-blue-500 shadow-sm' 
-                            : 'bg-gray-50 border-gray-300 cursor-not-allowed'
-                        }`}
+                        className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${editing
+                          ? 'bg-white border-blue-500 shadow-sm'
+                          : 'bg-gray-50 border-gray-300 cursor-not-allowed'
+                          }`}
                       >
                         <option value="">Select Gender</option>
                         <option value="male">Male</option>
@@ -326,11 +320,10 @@ const Profile = () => {
                         value={formData.cnic || ''}
                         onChange={(e) => setFormData({ ...formData, cnic: e.target.value })}
                         disabled={!editing}
-                        className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          editing 
-                            ? 'bg-white border-blue-500 shadow-sm' 
-                            : 'bg-gray-50 border-gray-300 cursor-not-allowed'
-                        }`}
+                        className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${editing
+                          ? 'bg-white border-blue-500 shadow-sm'
+                          : 'bg-gray-50 border-gray-300 cursor-not-allowed'
+                          }`}
                         placeholder={editing ? "Enter CNIC / B-Form" : ""}
                       />
                     </div>
@@ -348,11 +341,10 @@ const Profile = () => {
                         value={formData.age || ''}
                         onChange={(e) => setFormData({ ...formData, age: e.target.value })}
                         disabled={!editing}
-                        className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          editing 
-                            ? 'bg-white border-blue-500 shadow-sm' 
-                            : 'bg-gray-50 border-gray-300 cursor-not-allowed'
-                        }`}
+                        className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${editing
+                          ? 'bg-white border-blue-500 shadow-sm'
+                          : 'bg-gray-50 border-gray-300 cursor-not-allowed'
+                          }`}
                         placeholder={editing ? "Enter age" : ""}
                       />
                     </div>
@@ -368,11 +360,10 @@ const Profile = () => {
                         value={formData.city || ''}
                         onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                         disabled={!editing}
-                        className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          editing 
-                            ? 'bg-white border-blue-500 shadow-sm' 
-                            : 'bg-gray-50 border-gray-300 cursor-not-allowed'
-                        }`}
+                        className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${editing
+                          ? 'bg-white border-blue-500 shadow-sm'
+                          : 'bg-gray-50 border-gray-300 cursor-not-allowed'
+                          }`}
                         placeholder={editing ? "Enter city" : ""}
                       />
                     </div>
@@ -388,11 +379,10 @@ const Profile = () => {
                         value={formData.education || ''}
                         onChange={(e) => setFormData({ ...formData, education: e.target.value })}
                         disabled={!editing}
-                        className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          editing 
-                            ? 'bg-white border-blue-500 shadow-sm' 
-                            : 'bg-gray-50 border-gray-300 cursor-not-allowed'
-                        }`}
+                        className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${editing
+                          ? 'bg-white border-blue-500 shadow-sm'
+                          : 'bg-gray-50 border-gray-300 cursor-not-allowed'
+                          }`}
                         placeholder={editing ? "Enter education level" : ""}
                       />
                     </div>
@@ -408,11 +398,10 @@ const Profile = () => {
                         value={formData.institute || ''}
                         onChange={(e) => setFormData({ ...formData, institute: e.target.value })}
                         disabled={!editing}
-                        className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          editing 
-                            ? 'bg-white border-blue-500 shadow-sm' 
-                            : 'bg-gray-50 border-gray-300 cursor-not-allowed'
-                        }`}
+                        className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${editing
+                          ? 'bg-white border-blue-500 shadow-sm'
+                          : 'bg-gray-50 border-gray-300 cursor-not-allowed'
+                          }`}
                         placeholder={editing ? "Enter institute name" : ""}
                       />
                     </div>
@@ -428,11 +417,10 @@ const Profile = () => {
                         value={formData.socialMedia || ''}
                         onChange={(e) => setFormData({ ...formData, socialMedia: e.target.value })}
                         disabled={!editing}
-                        className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          editing 
-                            ? 'bg-white border-blue-500 shadow-sm' 
-                            : 'bg-gray-50 border-gray-300 cursor-not-allowed'
-                        }`}
+                        className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${editing
+                          ? 'bg-white border-blue-500 shadow-sm'
+                          : 'bg-gray-50 border-gray-300 cursor-not-allowed'
+                          }`}
                         placeholder={editing ? "Enter social media profile link" : ""}
                       />
                     </div>
@@ -450,11 +438,10 @@ const Profile = () => {
                           setFormData({ ...formData, skills: skillsArray });
                         }}
                         disabled={!editing}
-                        className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          editing 
-                            ? 'bg-white border-blue-500 shadow-sm' 
-                            : 'bg-gray-50 border-gray-300 cursor-not-allowed'
-                        }`}
+                        className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${editing
+                          ? 'bg-white border-blue-500 shadow-sm'
+                          : 'bg-gray-50 border-gray-300 cursor-not-allowed'
+                          }`}
                         rows="3"
                         placeholder={editing ? "Enter skills separated by commas" : ""}
                       />
@@ -473,11 +460,10 @@ const Profile = () => {
                           setFormData({ ...formData, expertise: expertiseArray });
                         }}
                         disabled={!editing}
-                        className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          editing 
-                            ? 'bg-white border-blue-500 shadow-sm' 
-                            : 'bg-gray-50 border-gray-300 cursor-not-allowed'
-                        }`}
+                        className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${editing
+                          ? 'bg-white border-blue-500 shadow-sm'
+                          : 'bg-gray-50 border-gray-300 cursor-not-allowed'
+                          }`}
                         rows="3"
                         placeholder={editing ? "Enter expertise areas separated by commas" : ""}
                       />
@@ -493,11 +479,10 @@ const Profile = () => {
                         value={formData.priorExperience || ''}
                         onChange={(e) => setFormData({ ...formData, priorExperience: e.target.value })}
                         disabled={!editing}
-                        className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          editing 
-                            ? 'bg-white border-blue-500 shadow-sm' 
-                            : 'bg-gray-50 border-gray-300 cursor-not-allowed'
-                        }`}
+                        className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${editing
+                          ? 'bg-white border-blue-500 shadow-sm'
+                          : 'bg-gray-50 border-gray-300 cursor-not-allowed'
+                          }`}
                       >
                         <option value="">Select Option</option>
                         <option value="yes">Yes</option>
@@ -516,11 +501,10 @@ const Profile = () => {
                         value={formData.experienceDesc || ''}
                         onChange={(e) => setFormData({ ...formData, experienceDesc: e.target.value })}
                         disabled={!editing}
-                        className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          editing 
-                            ? 'bg-white border-blue-500 shadow-sm' 
-                            : 'bg-gray-50 border-gray-300 cursor-not-allowed'
-                        }`}
+                        className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${editing
+                          ? 'bg-white border-blue-500 shadow-sm'
+                          : 'bg-gray-50 border-gray-300 cursor-not-allowed'
+                          }`}
                         placeholder={editing ? "Briefly describe your experience" : ""}
                       />
                     </div>
@@ -538,11 +522,10 @@ const Profile = () => {
                           setFormData({ ...formData, availabilityDays: daysArray });
                         }}
                         disabled={!editing}
-                        className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          editing 
-                            ? 'bg-white border-blue-500 shadow-sm' 
-                            : 'bg-gray-50 border-gray-300 cursor-not-allowed'
-                        }`}
+                        className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${editing
+                          ? 'bg-white border-blue-500 shadow-sm'
+                          : 'bg-gray-50 border-gray-300 cursor-not-allowed'
+                          }`}
                         rows="2"
                         placeholder={editing ? "Enter available days separated by commas (e.g., Monday, Tuesday)" : ""}
                       />
@@ -558,11 +541,10 @@ const Profile = () => {
                         value={formData.availabilityHours || ''}
                         onChange={(e) => setFormData({ ...formData, availabilityHours: e.target.value })}
                         disabled={!editing}
-                        className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          editing 
-                            ? 'bg-white border-blue-500 shadow-sm' 
-                            : 'bg-gray-50 border-gray-300 cursor-not-allowed'
-                        }`}
+                        className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${editing
+                          ? 'bg-white border-blue-500 shadow-sm'
+                          : 'bg-gray-50 border-gray-300 cursor-not-allowed'
+                          }`}
                       >
                         <option value="">Select Hours</option>
                         <option value="2–4 hours per week">2–4 hours per week</option>
@@ -577,25 +559,25 @@ const Profile = () => {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex space-x-4 pt-4">
+                <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 pt-4">
                   {editing ? (
                     <>
                       <button
-                        type="button" // Changed from "submit" to "button" to prevent form submission
+                        type="button"
                         onClick={(e) => {
                           e.preventDefault();
                           handleSubmit(e);
                         }}
                         disabled={loading}
-                        className="px-6 py-3 bg-[#FF6900] text-white rounded-lg hover:bg-[#ff6a00d6] transition disabled:opacity-50"
+                        className="w-full sm:w-auto px-6 py-3 bg-[#FF6900] text-white rounded-lg hover:bg-[#ff6a00d6] transition disabled:opacity-50"
                       >
                         {loading ? 'Saving...' : 'Save Changes'}
                       </button>
                       <button
                         type="button"
                         onClick={() => {
-                          // Reset form data to original values
                           setFormData({
+                            // ... (This part requires the user object to complete correctly, but I'm replacing the whole block anyway)
                             name: user?.name || '',
                             phone: user?.phone || '',
                             gender: user?.gender || '',
@@ -613,11 +595,10 @@ const Profile = () => {
                             availabilityHours: user?.availabilityHours || ''
                           });
                           setEditing(false);
-                          // Clear any messages when cancelling
                           setMessage('');
                           setMessageType('');
                         }}
-                        className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50"
+                        className="w-full sm:w-auto px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50"
                       >
                         Cancel
                       </button>
@@ -627,11 +608,10 @@ const Profile = () => {
                       type="button"
                       onClick={() => {
                         setEditing(true);
-                        // Clear any previous messages when entering edit mode
                         setMessage('');
                         setMessageType('');
                       }}
-                      className="px-6 py-3 bg-[#FF6900] text-white rounded-lg hover:bg-[#ff6a00d6] transition"
+                      className="w-full sm:w-auto px-6 py-3 bg-[#FF6900] text-white rounded-lg hover:bg-[#ff6a00d6] transition"
                     >
                       Edit Profile
                     </button>
@@ -642,8 +622,7 @@ const Profile = () => {
           </div>
         </div>
       </div>
-    </main>
-  </div>
+    </DashboardLayout>
   );
 };
 
