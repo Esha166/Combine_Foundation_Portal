@@ -35,7 +35,7 @@ const IdCard = () => {
       const response = await api.get('/idcard/download', {
         responseType: 'blob' // Important for handling file downloads
       });
-      
+
       // Create a download link
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
@@ -43,7 +43,7 @@ const IdCard = () => {
       link.setAttribute('download', `id-card-${user?.name?.replace(/\s+/g, '_')}-${idCardData?.idCard?.idNumber || 'temp'}.pdf`);
       document.body.appendChild(link);
       link.click();
-      
+
       // Clean up
       link.remove();
       window.URL.revokeObjectURL(url);
@@ -101,7 +101,7 @@ const IdCard = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      
+
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           {/* Header */}
@@ -123,10 +123,10 @@ const IdCard = () => {
             {/* ID Card Preview */}
             <div className="mb-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">ID Card Preview</h2>
-              
+
               {/* Front Side Card */}
               <div className="bg-gray-100 p-4 rounded-xl mb-6 flex justify-center">
-                <div className="bg-white rounded-2xl shadow-2xl overflow-hidden w-full max-w-xs" style={{height: '400px'}}>
+                <div className="bg-white rounded-2xl shadow-2xl overflow-hidden w-full max-w-xs" style={{ height: '400px' }}>
                   {/* Header with Logo */}
                   <div className="bg-gradient-to-r from-orange-600 to-orange-500 p-4 text-center relative">
                     <div className="absolute top-3 left-1/2 transform -translate-x-1/2">
@@ -145,7 +145,7 @@ const IdCard = () => {
                         </div>
                       </div>
                     </div>
-                    <h1 className="text-white text-base font-bold mt-14 tracking-wide">
+                    <h1 className="text-white text-base font-bold mt-20 tracking-wide">
                       COMBINE FOUNDATION
                     </h1>
                   </div>
@@ -186,10 +186,10 @@ const IdCard = () => {
                       <div className="flex justify-between border-b border-gray-200 pb-0.5">
                         <span className="font-semibold text-gray-700 text-xs">Join Date:</span>
                         <span className="text-gray-900 text-xs">
-                          {new Date(userData?.createdAt).toLocaleDateString('en-US', { 
-                            month: 'short', 
-                            day: '2-digit', 
-                            year: 'numeric' 
+                          {new Date(userData?.createdAt).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: '2-digit',
+                            year: 'numeric'
                           })}
                         </span>
                       </div>
@@ -201,19 +201,19 @@ const IdCard = () => {
                   </div>
                 </div>
               </div>
-              
+
               {/* Back Side Card */}
               <div className="bg-gray-100 p-4 rounded-xl mb-6 flex justify-center">
-                <div className="bg-white rounded-2xl shadow-2xl overflow-hidden w-full max-w-xs" style={{height: '400px'}} >
+                <div className="bg-white rounded-2xl shadow-2xl overflow-hidden w-full max-w-xs" style={{ height: '400px' }} >
                   <div className="flex flex-col items-center justify-center h-full p-2">
                     <h2 className="text-lg font-bold text-gray-900 mb-2">Volunteer Information</h2>
 
                     {/* QR Code */}
                     <div className="bg-white p-2 rounded-xl shadow-lg mb-2 border-2 border-gray-200">
                       {idCardInfo?.qrCode ? (
-                        <img 
-                          src={idCardInfo.qrCode} 
-                          alt="QR Code" 
+                        <img
+                          src={idCardInfo.qrCode}
+                          alt="QR Code"
                           className="w-24 h-24 object-contain"
                         />
                       ) : (
@@ -260,7 +260,7 @@ const IdCard = () => {
                 </div>
               </div>
             </div>
-            
+
             {/* Download Button */}
             <div className="flex justify-center">
               <button
@@ -286,7 +286,7 @@ const IdCard = () => {
                 )}
               </button>
             </div>
-            
+
             {/* ID Card Information */}
             <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
               <h3 className="font-medium text-blue-800 mb-2">ID Card Information</h3>
