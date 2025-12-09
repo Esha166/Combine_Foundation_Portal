@@ -2,8 +2,10 @@ import api from './api';
 
 export const taskService = {
   // Get tasks for the current user
-  getTasks: async () => {
-    const response = await api.get('/tasks');
+  // Get tasks for the current user (or filtered by userId for admins)
+  getTasks: async (userId) => {
+    const params = userId ? { userId } : {};
+    const response = await api.get('/tasks', { params });
     return response;
   },
 

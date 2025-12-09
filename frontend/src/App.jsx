@@ -25,6 +25,7 @@ import VolunteerManagement from "./components/admin/VolunteerManagement";
 import PendingApprovals from "./components/admin/PendingApprovals";
 import TrusteeManagement from "./components/admin/TrusteeManagement";
 import AdminManagement from "./components/admin/AdminManagement";
+import AdminTaskManagement from "./pages/admin/AdminTaskManagement";
 
 // Trustee pages
 import Stats from "./components/trustee/Stats";
@@ -131,6 +132,15 @@ function App() {
             }
           />
 
+          <Route
+            path="/admin/tasks"
+            element={
+              <ProtectedRoute roles={["admin", "superadmin", "developer"]}>
+                <AdminTaskManagement />
+              </ProtectedRoute>
+            }
+          />
+
           {/* Trustee routes */}
           <Route
             path="/trustee/stats"
@@ -177,7 +187,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-          
+
           <Route
             path="/volunteer/my-posts"
             element={

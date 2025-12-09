@@ -6,6 +6,11 @@ const taskSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  assignedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
   title: {
     type: String,
     required: true,
@@ -38,7 +43,7 @@ const taskSchema = new mongoose.Schema({
   }
 });
 
-taskSchema.pre('save', function(next) {
+taskSchema.pre('save', function (next) {
   this.updatedAt = Date.now();
   next();
 });

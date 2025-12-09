@@ -30,12 +30,12 @@ const AdminDashboard = () => {
         setLoading(true);
         // In a real app, you might have a dedicated dashboard stats endpoint
         // For now, we'll fetch what we can or mock the counts if endpoints aren't ready
-        
+
         // Fetch recent items for "glimpses"
         const [coursesRes, lecturesRes, volunteersRes] = await Promise.allSettled([
           courseService.getAllCourses(),
           getLectures({ limit: 5 }),
-          api.get('/admin/volunteers?limit=5') // Assuming this endpoint exists or similar
+          api.get('/volunteers?limit=5') // Assuming this endpoint exists or similar
         ]);
 
         const newRecentData = {
@@ -56,9 +56,15 @@ const AdminDashboard = () => {
           setStats(prev => ({ ...prev, lectures: lectures.length }));
         }
 
+        if (volunteersRes.status === 'fulfilled') {
+          const volunteersData = volunteersRes.value.data;
+          const count = volunteersData.count || (volunteersData.data ? volunteersData.data.length : 0);
+          setStats(prev => ({ ...prev, volunteers: count }));
+        }
+
         // Mocking other stats if endpoints fail or don't return counts directly
         // In a production app, you'd want a specific /admin/stats endpoint
-        
+
         setRecentData(newRecentData);
       } catch (error) {
         console.error('Error fetching admin dashboard data:', error);
@@ -123,6 +129,14 @@ const AdminDashboard = () => {
       icon: '👔',
       path: '/admin/trustees',
       color: 'red'
+    },
+    {
+      title: 'Task Assignment',
+      description: 'Assign tasks to volunteers',
+      count: 0, // Dynamic count not implemented yet
+      icon: '📋',
+      path: '/admin/tasks',
+      color: 'teal'
     }
   ];
 
