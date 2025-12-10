@@ -164,7 +164,7 @@ const Profile = () => {
               <Link to="/id-card" className="px-4 py-2 bg-white text-[#FF6900] rounded-lg hover:bg-gray-100 transition whitespace-nowrap">
                 View ID Card
               </Link>
-              <GoBackButton className="text-white bg-transparent border border-white hover:bg-white/10" />
+              <GoBackButton className="text-white bg-transparent hover:bg-white/10" />
             </div>
           </div>
 
