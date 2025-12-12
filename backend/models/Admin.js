@@ -5,13 +5,15 @@ const adminSchema = new mongoose.Schema({
   permissions: [{
     type: String,
     enum: [
-      'manage_volunteers', 
-      'manage_trustees', 
-      'manage_courses', 
-      'manage_posts', 
-      'view_analytics', 
-      'manage_admins', 
-      'view_reports'
+      'manage_volunteers',
+      'manage_trustees',
+      'manage_courses',
+      'manage_posts',
+      'view_analytics',
+      'manage_admins',
+      'view_reports',
+      'manage_lectures',
+      'manage_task_assignment'
     ]
   }],
   createdBy: {

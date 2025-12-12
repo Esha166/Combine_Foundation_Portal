@@ -5,20 +5,23 @@ import { getAllAdmins, createAdmin, deleteAdmin, getAuditLogs } from '../control
 
 const adminRouter = express.Router();
 
-// All routes require authentication and superadmin or developer role
+// All routes require authentication and superadmin, developer, or ADMIN role
 adminRouter.use(protect);
-adminRouter.use(roleCheck('superadmin', 'developer'));
+adminRouter.use(roleCheck('superadmin', 'developer', 'admin'));
+
+// Check permissions
+import { checkPermission } from '../middleware/checkPermission.js';
 
 // Get all admins
-adminRouter.get('/', getAllAdmins);
+adminRouter.get('/', checkPermission('manage_admins'), getAllAdmins);
 
 // Create new admin
-adminRouter.post('/', createAdmin);
+adminRouter.post('/', checkPermission('manage_admins'), createAdmin);
 
 // Delete admin
-adminRouter.delete('/:id', deleteAdmin);
+adminRouter.delete('/:id', checkPermission('manage_admins'), deleteAdmin);
 
 // Get audit logs
-adminRouter.get('/audit-logs', getAuditLogs);
+adminRouter.get('/audit-logs', checkPermission('view_analytics'), getAuditLogs);
 
 export default adminRouter;

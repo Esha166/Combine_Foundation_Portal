@@ -26,7 +26,7 @@ userRoute.get('/permissions', async (req, res, next) => {
   try {
     // Populate the complete user document with discriminator-specific fields
     const user = await User.findById(req.user.id);
-    
+
     // Prepare permissions response based on user role
     let permissionsResponse = {
       role: user.role,
@@ -34,7 +34,7 @@ userRoute.get('/permissions', async (req, res, next) => {
       canViewErrorLogs: false,
       canManageAdmins: false
     };
-    
+
     // Add role-specific permissions
     if (user.role === 'developer') {
       permissionsResponse.permissions = user.permissions || [];
@@ -48,14 +48,20 @@ userRoute.get('/permissions', async (req, res, next) => {
       permissionsResponse.canViewErrorLogs = true;
       permissionsResponse.canManageAdmins = true;
     } else if (user.role === 'admin') {
-      permissionsResponse.permissions = ['manage_volunteers', 'manage_courses', 'manage_posts'];
-      permissionsResponse.canViewAuditLogs = false;
+      // Fetch dynamic permissions from Admin model
+      const AdminModel = (await import('../models/Admin.js')).default;
+      const adminProfile = await AdminModel.findById(user._id);
+
+      permissionsResponse.permissions = adminProfile?.permissions || [];
+      // Admins generally don't view audit/error logs unless they have specific permissions or we decided otherwise
+      // For now, let's say 'view_analytics' allows audit logs view in UI if we wanted
+      permissionsResponse.canViewAuditLogs = permissionsResponse.permissions.includes('view_analytics');
       permissionsResponse.canViewErrorLogs = false;
-      permissionsResponse.canManageAdmins = false; // Only superadmin/developer can manage admins
+      permissionsResponse.canManageAdmins = permissionsResponse.permissions.includes('manage_admins');
     } else {
       permissionsResponse.permissions = [];
     }
-    
+
     res.status(200).json({
       success: true,
       data: permissionsResponse
@@ -93,24 +99,24 @@ userRoute.put('/profile/image', upload.single('image'), async (req, res, next) =
 userRoute.put('/profile', async (req, res, next) => {
   try {
     console.log('Update Profile Request Body:', req.body);
-    const { 
-      name, 
-      phone, 
-      gender, 
-      cnic, 
-      age, 
-      city, 
-      education, 
-      institute, 
-      socialMedia, 
-      skills, 
-      expertise, 
-      priorExperience, 
-      experienceDesc, 
-      availabilityDays, 
-      availabilityHours 
+    const {
+      name,
+      phone,
+      gender,
+      cnic,
+      age,
+      city,
+      education,
+      institute,
+      socialMedia,
+      skills,
+      expertise,
+      priorExperience,
+      experienceDesc,
+      availabilityDays,
+      availabilityHours
     } = req.body;
-    
+
     const user = await User.findById(req.user.id);
     console.log('Found User for Update:', user._id, 'Role:', user.role, 'Model:', user.constructor.modelName);
 
@@ -121,7 +127,7 @@ userRoute.put('/profile', async (req, res, next) => {
     if (hasValue(phone)) user.phone = phone;
     if (hasValue(gender)) user.gender = gender;
     if (hasValue(cnic)) user.cnic = cnic;
-    
+
     // Special handling for age - parse and validate
     if (hasValue(age)) {
       const parsedAge = parseInt(age, 10);
@@ -129,31 +135,31 @@ userRoute.put('/profile', async (req, res, next) => {
         user.age = parsedAge;
       }
     }
-    
+
     if (hasValue(city)) user.city = city;
     if (hasValue(education)) user.education = education;
     if (hasValue(institute)) user.institute = institute;
     if (hasValue(socialMedia)) user.socialMedia = socialMedia;
-    
+
     // Handle arrays - check if they have actual content
     if (skills !== undefined) {
       const skillsArray = Array.isArray(skills) ? skills : (typeof skills === 'string' ? skills.split(',').map(item => item.trim()) : []);
       user.skills = skillsArray.filter(s => s); // Remove empty strings
     }
-    
+
     if (expertise !== undefined) {
       const expertiseArray = Array.isArray(expertise) ? expertise : (typeof expertise === 'string' ? expertise.split(',').map(item => item.trim()) : []);
       user.expertise = expertiseArray.filter(e => e); // Remove empty strings
     }
-    
+
     if (hasValue(priorExperience)) user.priorExperience = priorExperience;
     if (hasValue(experienceDesc)) user.experienceDesc = experienceDesc;
-    
+
     if (availabilityDays !== undefined) {
       const daysArray = Array.isArray(availabilityDays) ? availabilityDays : (typeof availabilityDays === 'string' ? availabilityDays.split(',').map(item => item.trim()) : []);
       user.availabilityDays = daysArray.filter(d => d); // Remove empty strings
     }
-    
+
     if (hasValue(availabilityHours)) user.availabilityHours = availabilityHours;
 
     const updatedUser = await user.save();

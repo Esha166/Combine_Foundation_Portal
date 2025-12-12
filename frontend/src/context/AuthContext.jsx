@@ -14,6 +14,7 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [permissions, setPermissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -27,6 +28,21 @@ export const AuthProvider = ({ children }) => {
       if (token) {
         const response = await api.get("/auth/me");
         setUser(response.data.data);
+
+        // Fetch permissions if user is admin
+        if (response.data.data.role === 'admin') {
+          try {
+            const permResponse = await api.get("/user/permissions");
+            setPermissions(permResponse.data.data.permissions || []);
+          } catch (err) {
+            console.error("Failed to fetch permissions", err);
+            setPermissions([]);
+          }
+        } else {
+          // For non-admins, permissions might not be relevant or handled differently
+          // For superadmin/developer, we might want to assume full permissions or handle it in UI
+          setPermissions([]);
+        }
       }
     } catch (error) {
       localStorage.removeItem("token");
@@ -39,6 +55,19 @@ export const AuthProvider = ({ children }) => {
     const response = await api.post("/auth/login", { email, password });
     localStorage.setItem("token", response.data.token);
     setUser(response.data.user);
+
+    if (response.data.user.role === 'admin') {
+      try {
+        // We need to fetch permissions here too to have them immediately
+        const permResponse = await api.get("/user/permissions");
+        setPermissions(permResponse.data.data.permissions || []);
+      } catch (err) {
+        console.error("Failed to fetch permissions on login", err);
+        setPermissions([]);
+      }
+    } else {
+      setPermissions([]);
+    }
 
     // Redirect based on role
     if (response.data.user.isFirstLogin) {
@@ -54,6 +83,7 @@ export const AuthProvider = ({ children }) => {
     await api.get("/auth/logout");
     localStorage.removeItem("token");
     setUser(null);
+    setPermissions([]);
     navigate("/login");
   };
 
@@ -76,8 +106,23 @@ export const AuthProvider = ({ children }) => {
     return response.data;
   };
 
+  const hasPermission = (permission) => {
+    // Superadmin and Developer have all permissions effectively
+    if (user?.role === 'superadmin' || user?.role === 'developer') return true;
+    if (user?.role !== 'admin') return false; // Default for others unless specified
+
+    // The Twist: Volunteer management implies Task management
+    if (permission === 'manage_task_assignment' && (permissions.includes('manage_volunteers') || permissions.includes('manage_task_assignment'))) {
+      return true;
+    }
+
+    return permissions.includes(permission);
+  };
+
   const value = {
     user,
+    permissions,
+    hasPermission,
     loading,
     login,
     logout,

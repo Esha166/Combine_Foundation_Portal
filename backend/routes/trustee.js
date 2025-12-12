@@ -8,13 +8,16 @@ import { logAuditEvent } from '../utils/auditLogger.js';
 import { createTrusteeValidator } from '../validators/trusteeValidator.js';
 import { getStats, getDetailedReports, getMembers, getPosts, getCourses } from '../controllers/trusteeController.js';
 
+import { checkPermission } from '../middleware/checkPermission.js';
+
 const trusteeRoute = express.Router();
 
 // All routes require authentication
 trusteeRoute.use(protect);
 
 // Create new trustee
-trusteeRoute.post('/', roleCheck('admin', 'superadmin', 'developer'), validate(createTrusteeValidator), async (req, res, next) => {
+// Create new trustee
+trusteeRoute.post('/', roleCheck('admin', 'superadmin', 'developer'), checkPermission('manage_trustees'), validate(createTrusteeValidator), async (req, res, next) => {
   try {
     const { name, email, education } = req.body;
 
@@ -57,10 +60,10 @@ trusteeRoute.post('/', roleCheck('admin', 'superadmin', 'developer'), validate(c
 });
 
 // Get all trustees
-trusteeRoute.get('/', roleCheck('admin', 'superadmin', 'developer'), async (req, res, next) => {
+trusteeRoute.get('/', roleCheck('admin', 'superadmin', 'developer'), checkPermission('manage_trustees'), async (req, res, next) => {
   try {
     const trustees = await User.find({ role: 'trustee' }).sort({ createdAt: -1 });
-    
+
     res.status(200).json({
       success: true,
       count: trustees.length,
@@ -72,7 +75,7 @@ trusteeRoute.get('/', roleCheck('admin', 'superadmin', 'developer'), async (req,
 });
 
 // Delete trustee
-trusteeRoute.delete('/:id', roleCheck('admin', 'superadmin', 'developer'), async (req, res, next) => {
+trusteeRoute.delete('/:id', roleCheck('admin', 'superadmin', 'developer'), checkPermission('manage_trustees'), async (req, res, next) => {
   try {
     const trustee = await User.findById(req.params.id);
 
@@ -106,10 +109,10 @@ trusteeRoute.delete('/:id', roleCheck('admin', 'superadmin', 'developer'), async
 });
 
 // Get stats - accessible to trustee, admin, superadmin, and developer roles
-trusteeRoute.get('/stats', roleCheck('admin', 'superadmin', 'developer', 'trustee'), getStats);
+trusteeRoute.get('/stats', roleCheck('admin', 'superadmin', 'developer', 'trustee'), checkPermission('view_analytics'), getStats);
 
 // Get detailed reports - accessible to trustee, admin, superadmin, and developer roles
-trusteeRoute.get('/reports', roleCheck('admin', 'superadmin', 'developer', 'trustee'), getDetailedReports);
+trusteeRoute.get('/reports', roleCheck('admin', 'superadmin', 'developer', 'trustee'), checkPermission('view_reports'), getDetailedReports);
 
 // Get members (admins and volunteers) - accessible to trustee, admin, superadmin, and developer roles
 trusteeRoute.get('/members', roleCheck('admin', 'superadmin', 'developer', 'trustee'), getMembers);

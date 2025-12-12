@@ -8,7 +8,7 @@ import { getLectures } from '../../services/lectureService';
 import { courseService } from '../../services/courseService';
 
 const AdminDashboard = () => {
-  const { user } = useAuth();
+  const { user, hasPermission } = useAuth();
   const [stats, setStats] = useState({
     courses: 0,
     posts: 0,
@@ -89,56 +89,73 @@ const AdminDashboard = () => {
     );
   }
 
-  const adminCards = [
-    {
+  const adminCards = [];
+
+  if (hasPermission('manage_courses')) {
+    adminCards.push({
       title: 'Courses',
       description: 'Manage training courses',
       count: stats.courses,
       icon: '📚',
       path: '/admin/courses',
       color: 'blue'
-    },
-    {
+    });
+  }
+
+  if (hasPermission('manage_posts')) {
+    adminCards.push({
       title: 'Posts',
       description: 'Manage blog posts',
       count: stats.posts,
       icon: '📰',
       path: '/admin/posts',
       color: 'green'
-    },
-    {
+    });
+  }
+
+  if (hasPermission('manage_lectures')) {
+    adminCards.push({
       title: 'Lectures',
       description: 'Manage lectures',
       count: stats.lectures,
       icon: '🎥',
       path: '/admin/lectures',
       color: 'purple'
-    },
-    {
+    });
+  }
+
+  if (hasPermission('manage_volunteers')) {
+    adminCards.push({
       title: 'Volunteers',
       description: 'Manage volunteers',
       count: stats.volunteers,
       icon: '👥',
       path: '/admin/volunteers',
       color: 'orange'
-    },
-    {
+    });
+  }
+
+  if (hasPermission('manage_trustees')) {
+    adminCards.push({
       title: 'Trustees',
       description: 'Manage trustees',
       count: stats.trustees,
       icon: '👔',
       path: '/admin/trustees',
       color: 'red'
-    },
-    {
+    });
+  }
+
+  if (hasPermission('manage_task_assignment')) {
+    adminCards.push({
       title: 'Task Assignment',
       description: 'Assign tasks to volunteers',
       count: 0, // Dynamic count not implemented yet
       icon: '📋',
       path: '/admin/tasks',
       color: 'teal'
-    }
-  ];
+    });
+  }
 
   if (['superadmin', 'developer'].includes(user?.role)) {
     adminCards.push({

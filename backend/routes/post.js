@@ -14,8 +14,11 @@ postRoute.get('/:id', getPost);
 postRoute.use(protect);
 postRoute.use(roleCheck('admin', 'superadmin', 'developer'));
 
-postRoute.post('/', upload.single('image'), createPost);
-postRoute.put('/:id', upload.single('image'), updatePost);
-postRoute.delete('/:id', deletePost);
+// Check permissions
+import { checkPermission } from '../middleware/checkPermission.js';
+
+postRoute.post('/', checkPermission('manage_posts'), upload.single('image'), createPost);
+postRoute.put('/:id', checkPermission('manage_posts'), upload.single('image'), updatePost);
+postRoute.delete('/:id', checkPermission('manage_posts'), deletePost);
 
 export default postRoute;

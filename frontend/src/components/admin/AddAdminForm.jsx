@@ -11,18 +11,19 @@ const AddAdminForm = (props) => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState(''); // 'success' or 'error'
-  
+
   // Receive onSuccess callback from parent component
   const { onSuccess } = props;
 
   const permissionsOptions = [
     'manage_volunteers',
-    'manage_trustees', 
+    'manage_trustees',
     'manage_courses',
     'manage_posts',
     'view_analytics',
-    'manage_admins',
-    'view_reports'
+    'view_reports',
+    'manage_lectures',
+    'manage_task_assignment'
   ];
 
   const handleChange = (e) => {
@@ -63,12 +64,12 @@ const AddAdminForm = (props) => {
         phone: '',
         permissions: []
       });
-      
+
       // Call the parent's onSuccess function to refresh the admin list
       if (onSuccess) {
         onSuccess(response.message || 'Admin created successfully!');
       }
-      
+
       // Clear success message after 5 seconds
       setTimeout(() => {
         setMessage('');
@@ -86,13 +87,13 @@ const AddAdminForm = (props) => {
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md">
       <h2 className="text-2xl font-bold mb-6 text-gray-800">Add New Admin</h2>
-      
+
       {message && (
         <div className={`mb-4 p-3 rounded-md ${messageType === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
           {message}
         </div>
       )}
-      
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
