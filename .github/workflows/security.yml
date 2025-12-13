@@ -15,4 +15,10 @@ jobs:
         with:
           node-version: 18
 
-      - run: npm audit --audit-level=high
+      - name: Audit Backend
+        run: npm audit --audit-level=high
+        working-directory: backend
+
+      - name: Audit Frontend
+        run: npm audit --audit-level=high
+        working-directory: frontend
