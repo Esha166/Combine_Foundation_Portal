@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-const frontend_url = 'https://combine-foundation-portal-frontend.vercel.app/login'
+const frontend_url = (process.env.FRONTEND_URL || 'http://localhost:5173') + '/login';
 
 // Create reusable transporter
 const createTransporter = () => {
@@ -221,7 +221,8 @@ const sendForgotPasswordEmail = async (user, otp) => {
     return { success: true, messageId: info.messageId };
   } catch (error) {
     console.error('Email send error:', error);
-    return { success: false, error: error.message };  }
+    return { success: false, error: error.message };
+  }
 };
 
 // Function to send invitation email to a new volunteer
