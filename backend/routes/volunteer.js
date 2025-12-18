@@ -1,5 +1,5 @@
 import express from 'express';
-import { createVolunteer, getPendingVolunteers, getAllVolunteers, approveVolunteer, rejectVolunteer, deleteVolunteer, inviteVolunteer } from '../controllers/volunteerController.js';
+import { createVolunteer, getPendingVolunteers, getAllVolunteers, approveVolunteer, rejectVolunteer, deleteVolunteer, inviteVolunteer, completeVolunteer } from '../controllers/volunteerController.js';
 import { protect } from '../middleware/auth.js';
 import { roleCheck } from '../middleware/roleCheck.js';
 import { validate } from '../middleware/validator.js';
@@ -19,8 +19,9 @@ import { checkPermission } from '../middleware/checkPermission.js';
 
 volunteerRoute.get('/pending', checkPermission('manage_volunteers'), getPendingVolunteers);
 volunteerRoute.get('/', checkPermission('manage_volunteers'), getAllVolunteers);
-volunteerRoute.post('/invite', checkPermission('manage_volunteers'), inviteVolunteer); 
+volunteerRoute.post('/invite', checkPermission('manage_volunteers'), inviteVolunteer);
 volunteerRoute.post('/:id/approve', checkPermission('manage_volunteers'), approveVolunteer);
+volunteerRoute.post('/:id/complete', checkPermission('manage_volunteers'), completeVolunteer);
 volunteerRoute.post('/:id/reject', checkPermission('manage_volunteers'), validate(rejectVolunteerValidator), rejectVolunteer);
 volunteerRoute.delete('/:id', checkPermission('manage_volunteers'), deleteVolunteer);
 

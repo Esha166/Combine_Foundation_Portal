@@ -16,6 +16,16 @@ export const checkPermission = (requiredPermission) => {
 
       // 2. If user is not an admin, they shouldn't be here (unless route allows other roles)
       // But if this middleware is used, we assume we want to check for a specific admin permission.
+      // 2. Allow Trustees for specific read-only permissions
+      if (req.user.role === 'trustee') {
+        const allowedPermissions = ['view_analytics', 'view_reports'];
+        if (allowedPermissions.includes(requiredPermission)) {
+          return next();
+        }
+        // If trustee tries to access other permissions (like manage_trustees), fall through to denial
+      }
+
+      // 3. If user is not an admin (and not superadmin/developer/trustee handled above), deny access
       if (req.user.role !== 'admin') {
         return res.status(403).json({
           success: false,

@@ -99,7 +99,7 @@ const VolunteerManagement = () => {
 
   const handleInvite = async (e) => {
     e.preventDefault();
-    
+
     if (!inviteName.trim() || !inviteEmail.trim()) {
       alert('Please enter both name and email');
       return;
@@ -147,10 +147,32 @@ const VolunteerManagement = () => {
     }
   };
 
+  const handleComplete = async (id) => {
+    if (!window.confirm('Are you sure you want to mark this volunteer as completed?')) return;
+
+    try {
+      await volunteerService.completeVolunteer(id);
+      setMessage('Volunteer marked as completed successfully');
+      setMessageType('success');
+      fetchVolunteers(); // Refresh the list
+      setTimeout(() => {
+        setMessage('');
+        setMessageType('');
+      }, 5000);
+    } catch (error) {
+      setMessage(error.response?.data?.message || 'Failed to update volunteer status');
+      setMessageType('error');
+      setTimeout(() => {
+        setMessage('');
+        setMessageType('');
+      }, 5000);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <div className="flex justify-between items-start">
@@ -226,15 +248,14 @@ const VolunteerManagement = () => {
         <div className="bg-white rounded-lg shadow mb-6">
           <div className="border-b border-gray-200">
             <nav className="flex -mb-px">
-              {['pending', 'approved', 'rejected'].map((tab) => (
+              {['pending', 'approved', 'completed', 'rejected'].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`px-6 py-4 text-sm font-medium capitalize ${
-                    activeTab === tab
-                      ? 'border-b-2 border-[#FF6900] text-[#FF6900]'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
+                  className={`px-6 py-4 text-sm font-medium capitalize ${activeTab === tab
+                    ? 'border-b-2 border-[#FF6900] text-[#FF6900]'
+                    : 'text-gray-600 hover:text-gray-900'
+                    }`}
                 >
                   {tab}
                   {tab === 'pending' && pendingVolunteers && pendingVolunteers.length > 0 && (
@@ -259,6 +280,7 @@ const VolunteerManagement = () => {
                 onApprove={handleApprove}
                 onReject={openRejectModal}
                 onDelete={handleDeleteVolunteer}
+                onComplete={handleComplete}
               />
             )}
           </div>
@@ -302,7 +324,7 @@ const VolunteerManagement = () => {
                     >
                       Reject Volunteer Application
                     </Dialog.Title>
-                    <button 
+                    <button
                       onClick={() => {
                         setShowRejectModal(false);
                         setRejectionReason('');
@@ -312,7 +334,7 @@ const VolunteerManagement = () => {
                       <XMarkIcon className="h-6 w-6" />
                     </button>
                   </div>
-                  
+
                   <div className="mt-2">
                     <p className="text-gray-600 mb-4">
                       Please provide a reason for rejecting <strong>{selectedVolunteer?.name}</strong>
@@ -353,12 +375,12 @@ const VolunteerManagement = () => {
   );
 };
 
-const VolunteerList = ({ volunteers, status, onApprove, onReject, onDelete }) => {
+const VolunteerList = ({ volunteers, status, onApprove, onReject, onDelete, onComplete }) => {
   // Ensure volunteers is always an array, and handle nested data structures
   const safeVolunteers = volunteers && Array.isArray(volunteers) ? volunteers : [];
   // Filter out any undefined, null, or invalid entries
   const filteredVolunteers = safeVolunteers.filter(volunteer => volunteer && typeof volunteer === 'object');
-  
+
   if (filteredVolunteers.length === 0) {
     return (
       <div className="text-center py-12">
@@ -378,15 +400,14 @@ const VolunteerList = ({ volunteers, status, onApprove, onReject, onDelete }) =>
             <div className="flex-1">
               <div className="flex items-center space-x-3 mb-2">
                 <h3 className="text-lg font-semibold text-gray-900">{volunteer.name}</h3>
-                <span className={`px-3 py-1 text-xs font-medium rounded-full ${
-                  volunteer.gender === 'male' ? 'bg-primary-100 text-primary-800' :
+                <span className={`px-3 py-1 text-xs font-medium rounded-full ${volunteer.gender === 'male' ? 'bg-primary-100 text-primary-800' :
                   volunteer.gender === 'female' ? 'bg-primary-100 text-primary-800' :
-                  'bg-gray-100 text-gray-800'
-                }`}>
+                    'bg-gray-100 text-gray-800'
+                  }`}>
                   {volunteer.gender}
                 </span>
               </div>
-              
+
               <div className="space-y-1 text-sm text-gray-600">
                 <p><strong>Email:</strong> {volunteer.email}</p>
                 <p><strong>Phone:</strong> {volunteer.phone || 'N/A'}</p>
@@ -450,13 +471,23 @@ const VolunteerList = ({ volunteers, status, onApprove, onReject, onDelete }) =>
                   </button>
                 </div>
               )}
-              {(status === 'approved' || status === 'rejected') && (
-                <button
-                  onClick={() => onDelete(volunteer._id)}
-                  className="px-3 py-1 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition"
-                >
-                  Remove
-                </button>
+              {(status === 'approved' || status === 'rejected' || status === 'completed') && (
+                <div className="flex space-x-2">
+                  {status === 'approved' && (
+                    <button
+                      onClick={() => onComplete(volunteer._id)}
+                      className="px-3 py-1 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition"
+                    >
+                      Mark Completed
+                    </button>
+                  )}
+                  <button
+                    onClick={() => onDelete(volunteer._id)}
+                    className="px-3 py-1 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition"
+                  >
+                    Remove
+                  </button>
+                </div>
               )}
             </div>
           </div>

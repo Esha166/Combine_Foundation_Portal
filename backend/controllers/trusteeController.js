@@ -262,10 +262,10 @@ export const getDetailedReports = async (req, res, next) => {
 export const getMembers = async (req, res, next) => {
   try {
     // Get all users with role 'admin' or 'volunteer'
-    const members = await User.find({ 
+    const members = await User.find({
       role: { $in: ['admin', 'volunteer'] },
       isActive: true  // Only active users
-    }).select('name email role isActive createdAt');
+    }).select('name email role isActive createdAt status');
 
     // Separate into admins and volunteers
     const admins = members.filter(user => user.role === 'admin');

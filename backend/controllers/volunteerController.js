@@ -9,12 +9,12 @@ import { logAuditEvent } from "../utils/auditLogger.js";
 
 export const createVolunteer = async (req, res, next) => {
   try {
-    const { 
-      name, 
-      email, 
-      phone, 
-      expertise, 
-      gender, 
+    const {
+      name,
+      email,
+      phone,
+      expertise,
+      gender,
       appliedFormId,
       cnic,
       age,
@@ -144,6 +144,40 @@ export const rejectVolunteer = async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: "Volunteer rejected",
+      data: volunteer,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const completeVolunteer = async (req, res, next) => {
+  try {
+    const volunteer = await Volunteer.findById(req.params.id).select('-password');
+
+    if (!volunteer) {
+      return res.status(404).json({
+        success: false,
+        message: "Volunteer not found",
+      });
+    }
+
+    if (volunteer.status !== "approved") {
+      return res.status(400).json({
+        success: false,
+        message: "Only approved volunteers can be marked as completed",
+      });
+    }
+
+    volunteer.status = "completed";
+    await volunteer.save();
+
+    // Create audit log
+    await logAuditEvent('volunteer_completed', req.user.id, volunteer._id, req.ip);
+
+    res.status(200).json({
+      success: true,
+      message: "Volunteer marked as completed",
       data: volunteer,
     });
   } catch (error) {

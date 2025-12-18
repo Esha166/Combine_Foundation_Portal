@@ -4,7 +4,7 @@ import User from './User.js'
 const volunteerSchema = new mongoose.Schema({
   status: {
     type: String,
-    enum: ['pending', 'approved', 'rejected'],
+    enum: ['pending', 'approved', 'rejected', 'completed'],
     default: 'pending'
   },
   appliedFormId: {
