@@ -41,5 +41,10 @@ export const volunteerService = {
   completeVolunteer: async (id) => {
     const response = await api.post(`/volunteers/${id}/complete`);
     return response.data;
+  },
+
+  getVolunteerCount: async () => {
+    const response = await api.get('/volunteers/count');
+    return response.data;
   }
 };

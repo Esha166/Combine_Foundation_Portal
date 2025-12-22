@@ -1,5 +1,5 @@
 import express from 'express';
-import { createVolunteer, getPendingVolunteers, getAllVolunteers, approveVolunteer, rejectVolunteer, deleteVolunteer, inviteVolunteer, completeVolunteer } from '../controllers/volunteerController.js';
+import { createVolunteer, getPendingVolunteers, getAllVolunteers, approveVolunteer, rejectVolunteer, deleteVolunteer, inviteVolunteer, completeVolunteer, getVolunteerCount } from '../controllers/volunteerController.js';
 import { protect } from '../middleware/auth.js';
 import { roleCheck } from '../middleware/roleCheck.js';
 import { validate } from '../middleware/validator.js';
@@ -9,6 +9,7 @@ const volunteerRoute = express.Router();
 
 // Public route (webhook from Google Forms)
 volunteerRoute.post('/apply', validate(createVolunteerValidator), createVolunteer);
+volunteerRoute.get('/count', getVolunteerCount);
 
 // Protected routes (admin/superadmin/developer only)
 volunteerRoute.use(protect);

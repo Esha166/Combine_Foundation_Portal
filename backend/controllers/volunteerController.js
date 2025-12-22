@@ -185,6 +185,23 @@ export const completeVolunteer = async (req, res, next) => {
   }
 };
 
+export const getVolunteerCount = async (req, res, next) => {
+  try {
+    const activeCount = await Volunteer.countDocuments({ status: "approved" });
+    const completedCount = await Volunteer.countDocuments({ status: "completed" });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        active: activeCount,
+        completed: completedCount
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getPendingVolunteers = async (req, res, next) => {
   try {
     const volunteers = await Volunteer.find({ status: "pending" })
