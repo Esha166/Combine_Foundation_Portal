@@ -27,9 +27,21 @@ export const taskService = {
     return response;
   },
 
-  // Toggle task completion status
-  toggleTaskCompletion: async (taskId, completed) => {
-    const response = await api.patch(`/tasks/${taskId}/toggle`, { completed });
+  // Submit a task for review
+  submitTask: async (taskId, description) => {
+    const response = await api.post(`/tasks/${taskId}/submit`, { description });
+    return response;
+  },
+
+  // Approve a task
+  approveTask: async (taskId) => {
+    const response = await api.patch(`/tasks/${taskId}/approve`);
+    return response;
+  },
+
+  // Reject a task
+  rejectTask: async (taskId) => {
+    const response = await api.patch(`/tasks/${taskId}/reject`);
     return response;
   }
 };

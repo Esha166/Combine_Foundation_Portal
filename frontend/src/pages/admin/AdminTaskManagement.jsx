@@ -87,6 +87,36 @@ const AdminTaskManagement = () => {
         }
     };
 
+    const handleApproveTask = async (taskId) => {
+        try {
+            const response = await taskService.approveTask(taskId);
+            const updatedTask = response.data.data || response.data;
+            setVolunteerTasks(volunteerTasks.map(task =>
+                (task._id || task.id) === taskId ? updatedTask : task
+            ));
+            showMsg('Task approved', 'success');
+        } catch (error) {
+            console.error('Error approving task:', error);
+            showMsg('Failed to approve task: ' + (error.response?.data?.message || error.message), 'error');
+        }
+    };
+
+    const handleRejectTask = async (taskId) => {
+        if (!window.confirm("Are you sure you want to reject this task? It will be moved back to pending.")) return;
+
+        try {
+            const response = await taskService.rejectTask(taskId);
+            const updatedTask = response.data.data || response.data;
+            setVolunteerTasks(volunteerTasks.map(task =>
+                (task._id || task.id) === taskId ? updatedTask : task
+            ));
+            showMsg('Task rejected', 'success');
+        } catch (error) {
+            console.error('Error rejecting task:', error);
+            showMsg('Failed to reject task: ' + (error.response?.data?.message || error.message), 'error');
+        }
+    };
+
     const handleDeleteTask = async (taskId) => {
         if (!window.confirm("Are you sure you want to delete this task?")) return;
 
@@ -252,36 +282,68 @@ const AdminTaskManagement = () => {
                                 </div>
                             ) : (
                                 <div className="space-y-4">
-                                    {volunteerTasks.map(task => (
-                                        <div key={task._id} className={`p-4 rounded-lg border border-l-4 ${task.completed ? 'bg-green-50 border-green-500' : 'bg-white border-gray-200'}`}>
+                                    {volunteerTasks.map(task => {
+                                         // Simplify status resolution
+                                        const status = task.status || (task.completed ? 'completed' : 'pending');
+
+                                        return (
+                                        <div key={task._id} className={`p-4 rounded-lg border border-l-4 ${status === 'completed' ? 'bg-green-50 border-green-500' : status === 'submitted' ? 'bg-blue-50 border-blue-500' : 'bg-white border-gray-200'}`}>
                                             <div className="flex justify-between items-start">
-                                                <div>
-                                                    <div className="flex items-center gap-2">
-                                                        <h3 className={`font-semibold ${task.completed ? 'text-green-800 line-through' : 'text-gray-900'}`}>{task.title}</h3>
+                                                <div className="flex-grow">
+                                                    <div className="flex items-center gap-2 flex-wrap">
+                                                        <h3 className={`font-semibold ${status === 'completed' ? 'text-green-800 line-through' : 'text-gray-900'}`}>{task.title}</h3>
                                                         <span className={`px-2 py-0.5 rounded text-xs ${getPriorityColor(task.priority)}`}>
                                                             {task.priority}
                                                         </span>
-                                                        {task.completed && <span className="text-green-600 text-xs font-bold">COMPLETED</span>}
+                                                        {status === 'completed' && <span className="text-green-600 text-xs font-bold bg-green-100 px-2 py-0.5 rounded">COMPLETED</span>}
+                                                        {status === 'submitted' && <span className="text-blue-600 text-xs font-bold bg-blue-100 px-2 py-0.5 rounded">PENDING REVIEW</span>}
                                                     </div>
                                                     <p className="text-gray-600 text-sm mt-1">{task.description}</p>
-                                                    <div className="mt-2 text-xs text-gray-500 flex gap-4">
+                                                    <div className="mt-2 text-xs text-gray-500 flex gap-4 flex-wrap">
                                                         <span>Created: {new Date(task.createdAt).toLocaleDateString()}</span>
                                                         {task.dueDate && <span>Due: {new Date(task.dueDate).toLocaleDateString()}</span>}
                                                         {task.assignedBy && <span>Assigned By: {task.assignedBy.name || 'Admin'}</span>}
                                                     </div>
+                                                    
+                                                    {task.submissionDetails && (
+                                                        <div className="mt-2 p-2 bg-gray-50 rounded border border-gray-200 text-sm text-gray-700">
+                                                            <span className="font-semibold block text-gray-900 mb-1">Submission Notes:</span>
+                                                            {task.submissionDetails}
+                                                        </div>
+                                                    )}
+
+                                                    {status === 'submitted' && (
+                                                        <div className="mt-3 flex gap-2">
+                                                            <button 
+                                                                onClick={() => handleApproveTask(task._id)}
+                                                                className="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition"
+                                                            >
+                                                                Approve
+                                                            </button>
+                                                            <button 
+                                                                onClick={() => handleRejectTask(task._id)}
+                                                                className="px-3 py-1 bg-yellow-500 text-white text-xs rounded hover:bg-yellow-600 transition"
+                                                            >
+                                                                Reject
+                                                            </button>
+                                                        </div>
+                                                    )}
                                                 </div>
-                                                <button
-                                                    onClick={() => handleDeleteTask(task._id)}
-                                                    className="text-red-500 hover:text-red-700"
-                                                    title="Delete Task"
-                                                >
-                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                    </svg>
-                                                </button>
+                                                <div className="flex flex-col gap-2 ml-4">
+                                                    <button
+                                                        onClick={() => handleDeleteTask(task._id)}
+                                                        className="text-red-500 hover:text-red-700 p-1"
+                                                        title="Delete Task"
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
-                                    ))}
+                                    );
+                                    })}
                                 </div>
                             )}
                         </div>

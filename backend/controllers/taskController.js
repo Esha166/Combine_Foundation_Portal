@@ -168,42 +168,84 @@ const deleteTask = async (req, res) => {
   }
 };
 
-// Toggle task completion status
-const toggleTaskCompletion = async (req, res) => {
+// Submit a task (Volunteer)
+const submitTask = async (req, res) => {
   try {
     const { taskId } = req.params;
-    const { completed } = req.body;
+    const { description } = req.body;
 
-    let query = { _id: taskId };
-
-    // If volunteer, can only complete own tasks
-    if (!['admin', 'superadmin', 'developer'].includes(req.user.role)) {
-      query.userId = req.user._id;
+    if (!description || description.trim() === '') {
+      return res.status(400).json({ success: false, message: 'Submission description is required' });
     }
 
-    const task = await Task.findOne(query);
+    const task = await Task.findOne({ _id: taskId, userId: req.user._id });
 
     if (!task) {
-      return res.status(404).json({
-        success: false,
-        message: 'Task not found'
-      });
+      return res.status(404).json({ success: false, message: 'Task not found' });
     }
 
-    task.completed = completed === true;
+    if (task.status === 'completed') {
+      return res.status(400).json({ success: false, message: 'Task is already completed' });
+    }
+
+    task.status = 'submitted';
+    task.submissionDetails = description.trim();
     await task.save();
 
-    res.status(200).json({
-      success: true,
-      data: task,
-      message: 'Task completion status updated'
-    });
+    res.status(200).json({ success: true, data: task, message: 'Task submitted for review' });
   } catch (error) {
-    console.error('Error updating task completion:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error while updating task completion'
-    });
+    console.error('Error submitting task:', error);
+    res.status(500).json({ success: false, message: 'Server error while submitting task' });
+  }
+};
+
+// Approve a task (Admin)
+const approveTask = async (req, res) => {
+  try {
+    if (!['admin', 'superadmin', 'developer'].includes(req.user.role)) {
+      return res.status(403).json({ success: false, message: 'Not authorized' });
+    }
+
+    const { taskId } = req.params;
+    const task = await Task.findById(taskId);
+
+    if (!task) {
+      return res.status(404).json({ success: false, message: 'Task not found' });
+    }
+
+    task.status = 'completed';
+    task.completed = true; // Maintain backward compatibility
+    await task.save();
+
+    res.status(200).json({ success: true, data: task, message: 'Task approved and completed' });
+  } catch (error) {
+    console.error('Error approving task:', error);
+    res.status(500).json({ success: false, message: 'Server error while approving task' });
+  }
+};
+
+// Reject a task (Admin)
+const rejectTask = async (req, res) => {
+  try {
+    if (!['admin', 'superadmin', 'developer'].includes(req.user.role)) {
+      return res.status(403).json({ success: false, message: 'Not authorized' });
+    }
+
+    const { taskId } = req.params;
+    const task = await Task.findById(taskId);
+
+    if (!task) {
+      return res.status(404).json({ success: false, message: 'Task not found' });
+    }
+
+    task.status = 'pending';
+    task.completed = false;
+    await task.save();
+
+    res.status(200).json({ success: true, data: task, message: 'Task rejected and moved to pending' });
+  } catch (error) {
+    console.error('Error rejecting task:', error);
+    res.status(500).json({ success: false, message: 'Server error while rejecting task' });
   }
 };
 
@@ -212,5 +254,7 @@ export {
   createTask,
   updateTask,
   deleteTask,
-  toggleTaskCompletion
+  submitTask,
+  approveTask,
+  rejectTask
 };

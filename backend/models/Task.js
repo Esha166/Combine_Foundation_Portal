@@ -29,6 +29,15 @@ const taskSchema = new mongoose.Schema({
     enum: ['low', 'medium', 'high'],
     default: 'medium'
   },
+  status: {
+    type: String,
+    enum: ['pending', 'submitted', 'completed'],
+    default: 'pending'
+  },
+  submissionDetails: {
+    type: String,
+    default: ''
+  },
   completed: {
     type: Boolean,
     default: false
