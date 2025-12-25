@@ -81,7 +81,9 @@ const Landing = () => {
         </div>
 
         {/* Mission Section */}
-        <Mission />
+        <div id="about">
+          <Mission />
+        </div>
 
         {/* Role Cards Section - Redesigned */}
         <div className="py-24 bg-gradient-to-b from-white to-gray-50 relative overflow-hidden">
@@ -183,7 +185,9 @@ const Landing = () => {
         </div>
 
         {/* Join Volunteer Section */}
-        <JoinVolunteer />
+        <div id="volunteer">
+          <JoinVolunteer />
+        </div>
 
         {/* Testimonials Section */}
         <Testimonials />
