@@ -108,10 +108,10 @@ const Landing = () => {
                     Make a difference today. Access exclusive courses, view community posts, and track your impact journey with our dedicated portal.
                   </p>
 
-                  <Button to="/login" className="w-full bg-gray-50 hover:bg-orange-50 text-gray-900 hover:text-orange-700 border border-gray-200 hover:border-orange-200 justify-between group">
+                  <Button to="/login" className="w-full bg-gradient-to-r from-orange-500 to-red-600 text-white border-none justify-center group shadow-md hover:shadow-xl hover:scale-[1.02] transition-all duration-300">
                     Login as Volunteer
-                    <span className="bg-white rounded-full p-1 shadow-sm group-hover:translate-x-1 transition-transform">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
+                    <span className="bg-white/20 rounded-full p-1 ml-3 group-hover:translate-x-1 transition-transform backdrop-blur-sm">
+                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
                     </span>
                   </Button>
                 </div>
@@ -133,10 +133,10 @@ const Landing = () => {
                     Streamline operations. Manage volunteers, review applications, organize courses, and oversee the foundation's daily activities.
                   </p>
 
-                  <Button to="/login" className="w-full bg-gray-50 hover:bg-blue-50 text-gray-900 hover:text-blue-700 border border-gray-200 hover:border-blue-200 justify-between group">
+                  <Button to="/login" className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white border-none justify-center group shadow-md hover:shadow-xl hover:scale-[1.02] transition-all duration-300">
                     Login as Admin
-                    <span className="bg-white rounded-full p-1 shadow-sm group-hover:translate-x-1 transition-transform">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
+                    <span className="bg-white/20 rounded-full p-1 ml-3 group-hover:translate-x-1 transition-transform backdrop-blur-sm">
+                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
                     </span>
                   </Button>
                 </div>
@@ -158,10 +158,10 @@ const Landing = () => {
                     Guide the vision. View comprehensive analytics, financial statistics, and organizational insights to make informed decisions.
                   </p>
 
-                  <Button to="/login" className="w-full bg-gray-50 hover:bg-indigo-50 text-gray-900 hover:text-indigo-700 border border-gray-200 hover:border-indigo-200 justify-between group">
+                  <Button to="/login" className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white border-none justify-center group shadow-md hover:shadow-xl hover:scale-[1.02] transition-all duration-300">
                     Login as Trustee
-                    <span className="bg-white rounded-full p-1 shadow-sm group-hover:translate-x-1 transition-transform">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
+                    <span className="bg-white/20 rounded-full p-1 ml-3 group-hover:translate-x-1 transition-transform backdrop-blur-sm">
+                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
                     </span>
                   </Button>
                 </div>
