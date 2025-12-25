@@ -83,7 +83,6 @@ const Mission = () => {
                 {/* Introduction Section - Redesigned */}
                 <div className="max-w-5xl mx-auto mb-20">
                     <div className="text-center mb-10">
-                        <span className="text-orange-600 font-bold tracking-wider uppercase text-sm mb-2 block">About Us</span>
                         <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 leading-tight">
                             Introduction of <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-red-600">Combine Foundation</span>
                         </h2>
