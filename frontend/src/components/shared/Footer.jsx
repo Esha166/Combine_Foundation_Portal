@@ -86,9 +86,6 @@ const Footer = () => {
               <li>
                 <button onClick={() => handleScroll('volunteer')} className="text-sm text-gray-400 hover:text-orange-500 transition-colors bg-transparent border-none p-0 cursor-pointer text-left">Become a Volunteer</button>
               </li>
-              <li>
-                <button onClick={() => handleScroll('contact')} className="text-sm text-gray-400 hover:text-orange-500 transition-colors bg-transparent border-none p-0 cursor-pointer text-left">Contact</button>
-              </li>
             </ul>
           </div>
 
@@ -116,8 +113,7 @@ const Footer = () => {
             © {new Date().getFullYear()} Combine Foundation. All rights reserved.
           </p>
           <div className="flex gap-6 text-sm text-gray-500">
-            <Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
-            <Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
+            <p className="hover:text-white transition-colors">Developed by Team of Combine Foundation</p>
           </div>
         </div>
       </Container>
