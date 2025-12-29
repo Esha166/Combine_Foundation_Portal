@@ -37,7 +37,7 @@ const Posts = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <div className="flex justify-between items-start">
@@ -57,18 +57,35 @@ const Posts = () => {
                 <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
                   {post.title}
                 </h3>
+                {post.subtitle && (
+                  <p className="text-gray-700 text-sm font-medium mb-2">{post.subtitle}</p>
+                )}
                 <div className="flex items-center text-sm text-gray-500 mb-3">
-                  <span>By {post.author?.name || 'Unknown'}</span>
+                  <span>By {post.createdBy?.name || post.author?.name || 'Unknown'}</span>
                   <span className="mx-2">•</span>
                   <span>{new Date(post.createdAt).toLocaleDateString()}</span>
                 </div>
                 <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                  {post.content.substring(0, 100)}...
+                  {post.content?.substring(0, 100)}...
                 </p>
                 <div className="flex items-center justify-between">
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                     Published
                   </span>
+
+                  {post.socialLink && (
+                    <a
+                      href={post.socialLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center px-3 py-1.5 bg-[#FF6900] text-white text-xs font-medium rounded-md hover:bg-[#e65e00] transition-colors"
+                    >
+                      <svg className="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                      View Link
+                    </a>
+                  )}
                 </div>
               </div>
             </div>
