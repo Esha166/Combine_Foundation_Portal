@@ -60,3 +60,16 @@ export const useDeleteLecture = () => {
         },
     });
 };
+
+export const useToggleLectureStatus = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (id) => lectureService.toggleLectureStatus(id),
+        onSuccess: (data, variables) => {
+            queryClient.invalidateQueries(['lectures']);
+            queryClient.invalidateQueries(['public-lectures']);
+            queryClient.invalidateQueries(['lecture', variables]); // variables is the id
+        },
+    });
+};
