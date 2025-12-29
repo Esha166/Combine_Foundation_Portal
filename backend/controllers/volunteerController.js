@@ -102,6 +102,24 @@ export const approveVolunteer = async (req, res, next) => {
     volunteer.password = tempPassword;
     volunteer.approvedBy = req.user.id;
     volunteer.approvedAt = Date.now();
+
+    // Initialize profile fields if they don't exist
+    // This ensures Mongoose tracks these fields for future updates
+    if (volunteer.phone === undefined) volunteer.phone = '';
+    if (volunteer.gender === undefined) volunteer.gender = '';
+    if (volunteer.cnic === undefined) volunteer.cnic = '';
+    if (volunteer.age === undefined) volunteer.age = null;
+    if (volunteer.city === undefined) volunteer.city = '';
+    if (volunteer.education === undefined) volunteer.education = '';
+    if (volunteer.institute === undefined) volunteer.institute = '';
+    if (volunteer.socialMedia === undefined) volunteer.socialMedia = '';
+    if (!Array.isArray(volunteer.skills)) volunteer.skills = [];
+    if (!Array.isArray(volunteer.expertise)) volunteer.expertise = [];
+    if (volunteer.priorExperience === undefined) volunteer.priorExperience = '';
+    if (volunteer.experienceDesc === undefined) volunteer.experienceDesc = '';
+    if (!Array.isArray(volunteer.availabilityDays)) volunteer.availabilityDays = [];
+    if (volunteer.availabilityHours === undefined) volunteer.availabilityHours = '';
+
     await volunteer.save();
 
     // Send approval email

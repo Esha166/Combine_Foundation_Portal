@@ -133,6 +133,19 @@ export const changePassword = async (req, res, next) => {
 export const getMe = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
+    console.log('=== GET ME DEBUG ===');
+    console.log('User ID:', req.user.id);
+    console.log('User Role:', user?.role);
+    console.log('User Name:', user?.name);
+    console.log('User Phone:', user?.phone);
+    console.log('User Gender:', user?.gender);
+    console.log('User CNIC:', user?.cnic);
+    console.log('User Age:', user?.age);
+    console.log('User City:', user?.city);
+    console.log('User Education:', user?.education);
+    console.log('User Skills:', user?.skills);
+    console.log('User Expertise:', user?.expertise);
+    console.log('==================');
 
     res.status(200).json({
       success: true,
@@ -173,7 +186,7 @@ export const forgotPassword = async (req, res, next) => {
     const passwordReset = new PasswordReset({
       email: email
     });
-    
+
     await passwordReset.save();
 
     // Send OTP via email
@@ -209,7 +222,7 @@ export const verifyOTP = async (req, res, next) => {
     }
 
     // Find the password reset record
-    const passwordReset = await PasswordReset.findOne({ 
+    const passwordReset = await PasswordReset.findOne({
       email: email,
       otp: otp,
       expiresAt: { $gt: new Date() }, // Check if OTP is not expired
@@ -253,7 +266,7 @@ export const resetPassword = async (req, res, next) => {
     }
 
     // Verify the OTP first
-    const passwordReset = await PasswordReset.findOne({ 
+    const passwordReset = await PasswordReset.findOne({
       email: email,
       otp: otp,
       expiresAt: { $gt: new Date() }, // Check if OTP is not expired

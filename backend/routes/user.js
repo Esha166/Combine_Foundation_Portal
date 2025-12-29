@@ -162,8 +162,29 @@ userRoute.put('/profile', async (req, res, next) => {
 
     if (hasValue(availabilityHours)) user.availabilityHours = availabilityHours;
 
+    console.log('=== BEFORE SAVE ===');
+    console.log('User Phone:', user.phone);
+    console.log('User Gender:', user.gender);
+    console.log('User CNIC:', user.cnic);
+    console.log('User Age:', user.age);
+    console.log('User City:', user.city);
+    console.log('User Education:', user.education);
+    console.log('User Skills:', user.skills);
+    console.log('User Modified Paths:', user.modifiedPaths());
+    console.log('==================');
+
     const updatedUser = await user.save();
-    console.log('Updated User:', updatedUser);
+
+    console.log('=== AFTER SAVE ===');
+    console.log('Updated User ID:', updatedUser._id);
+    console.log('Updated User Phone:', updatedUser.phone);
+    console.log('Updated User Gender:', updatedUser.gender);
+    console.log('Updated User CNIC:', updatedUser.cnic);
+    console.log('Updated User Age:', updatedUser.age);
+    console.log('Updated User City:', updatedUser.city);
+    console.log('Updated User Education:', updatedUser.education);
+    console.log('Updated User Skills:', updatedUser.skills);
+    console.log('==================');
 
     res.status(200).json({
       success: true,
