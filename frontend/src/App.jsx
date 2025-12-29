@@ -1,6 +1,7 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import ProtectedRoute from "./components/shared/ProtectedRoute";
 
 // Pages
@@ -42,248 +43,261 @@ import VolunteerTasks from "./components/volunteer/VolunteerTasks";
 import AuditLogs from "./components/developer/AuditLogs";
 import ErrorLogs from "./components/developer/ErrorLogs";
 
+// Create a client for React Query
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    },
+  },
+});
+
 function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/volunteer/apply" element={<VolunteerApplicationForm />} />
-          <Route
-            path="/change-password"
-            element={
-              <ProtectedRoute>
-                <ChangePassword />
-              </ProtectedRoute>
-            }
-          />
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/volunteer/apply" element={<VolunteerApplicationForm />} />
+            <Route
+              path="/change-password"
+              element={
+                <ProtectedRoute>
+                  <ChangePassword />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/id-card"
-            element={
-              <ProtectedRoute>
-                <IdCard />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/id-card"
+              element={
+                <ProtectedRoute>
+                  <IdCard />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/lectures"
-            element={
-              <ProtectedRoute>
-                <Lectures />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/lectures"
+              element={
+                <ProtectedRoute>
+                  <Lectures />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Admin routes */}
-          <Route
-            path="/admin/courses"
-            element={
-              <ProtectedRoute roles={["admin", "superadmin", "developer"]}>
-                <Courses />
-              </ProtectedRoute>
-            }
-          />
+            {/* Admin routes */}
+            <Route
+              path="/admin/courses"
+              element={
+                <ProtectedRoute roles={["admin", "superadmin", "developer"]}>
+                  <Courses />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/admin/posts"
-            element={
-              <ProtectedRoute roles={["admin", "superadmin", "developer"]}>
-                <Posts />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/admin/posts"
+              element={
+                <ProtectedRoute roles={["admin", "superadmin", "developer"]}>
+                  <Posts />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/admin/volunteers"
-            element={
-              <ProtectedRoute roles={["admin", "superadmin", "developer"]}>
-                <VolunteerManagement />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/admin/volunteers"
+              element={
+                <ProtectedRoute roles={["admin", "superadmin", "developer"]}>
+                  <VolunteerManagement />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/admin/trustees"
-            element={
-              <ProtectedRoute roles={["admin", "superadmin", "developer"]}>
-                <TrusteeManagement />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/admin/trustees"
+              element={
+                <ProtectedRoute roles={["admin", "superadmin", "developer"]}>
+                  <TrusteeManagement />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/admin/tasks"
-            element={
-              <ProtectedRoute roles={["admin", "superadmin", "developer"]}>
-                <AdminTaskManagement />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/admin/tasks"
+              element={
+                <ProtectedRoute roles={["admin", "superadmin", "developer"]}>
+                  <AdminTaskManagement />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Trustee routes */}
-          <Route
-            path="/trustee/stats"
-            element={
-              <ProtectedRoute roles={["trustee", "superadmin", "developer"]}>
-                <Stats />
-              </ProtectedRoute>
-            }
-          />
+            {/* Trustee routes */}
+            <Route
+              path="/trustee/stats"
+              element={
+                <ProtectedRoute roles={["trustee", "superadmin", "developer"]}>
+                  <Stats />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/trustee/members"
-            element={
-              <ProtectedRoute roles={["trustee", "superadmin", "developer"]}>
-                <Members />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/trustee/members"
+              element={
+                <ProtectedRoute roles={["trustee", "superadmin", "developer"]}>
+                  <Members />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/trustee/posts"
-            element={
-              <ProtectedRoute roles={["trustee", "superadmin", "developer"]}>
-                <TrusteePosts />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/trustee/posts"
+              element={
+                <ProtectedRoute roles={["trustee", "superadmin", "developer"]}>
+                  <TrusteePosts />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/trustee/courses"
-            element={
-              <ProtectedRoute roles={["trustee", "superadmin", "developer"]}>
-                <TrusteeCourses />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/trustee/courses"
+              element={
+                <ProtectedRoute roles={["trustee", "superadmin", "developer"]}>
+                  <TrusteeCourses />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Volunteer routes */}
-          <Route
-            path="/volunteer/my-courses"
-            element={
-              <ProtectedRoute roles={["volunteer", "admin", "superadmin", "developer"]}>
-                <MyCourses />
-              </ProtectedRoute>
-            }
-          />
+            {/* Volunteer routes */}
+            <Route
+              path="/volunteer/my-courses"
+              element={
+                <ProtectedRoute roles={["volunteer", "admin", "superadmin", "developer"]}>
+                  <MyCourses />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/volunteer/my-posts"
-            element={
-              <ProtectedRoute roles={["volunteer", "admin", "superadmin", "developer"]}>
-                <MyPosts />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/volunteer/my-posts"
+              element={
+                <ProtectedRoute roles={["volunteer", "admin", "superadmin", "developer"]}>
+                  <MyPosts />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/volunteer/tasks"
-            element={
-              <ProtectedRoute roles={["volunteer", "admin", "superadmin", "developer"]}>
-                <VolunteerTasks />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/volunteer/tasks"
+              element={
+                <ProtectedRoute roles={["volunteer", "admin", "superadmin", "developer"]}>
+                  <VolunteerTasks />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Additional Admin routes */}
-          <Route
-            path="/admin/pending-approvals"
-            element={
-              <ProtectedRoute roles={["admin", "superadmin", "developer"]}>
-                <PendingApprovals />
-              </ProtectedRoute>
-            }
-          />
+            {/* Additional Admin routes */}
+            <Route
+              path="/admin/pending-approvals"
+              element={
+                <ProtectedRoute roles={["admin", "superadmin", "developer"]}>
+                  <PendingApprovals />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/admin/manage-admins"
-            element={
-              <ProtectedRoute roles={["superadmin", "developer"]}>
-                <AdminManagement />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/admin/manage-admins"
+              element={
+                <ProtectedRoute roles={["superadmin", "developer"]}>
+                  <AdminManagement />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/admin/lectures"
-            element={
-              <ProtectedRoute roles={["admin", "superadmin", "developer"]}>
-                <LectureManagement />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/admin/lectures"
+              element={
+                <ProtectedRoute roles={["admin", "superadmin", "developer"]}>
+                  <LectureManagement />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/admin/lectures/new"
-            element={
-              <ProtectedRoute roles={["admin", "superadmin", "developer"]}>
-                <LectureForm />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/admin/lectures/new"
+              element={
+                <ProtectedRoute roles={["admin", "superadmin", "developer"]}>
+                  <LectureForm />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/admin/lectures/edit/:id"
-            element={
-              <ProtectedRoute roles={["admin", "superadmin", "developer"]}>
-                <LectureForm />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/admin/lectures/edit/:id"
+              element={
+                <ProtectedRoute roles={["admin", "superadmin", "developer"]}>
+                  <LectureForm />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute roles={["admin", "superadmin", "developer"]}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute roles={["admin", "superadmin", "developer"]}>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Developer routes */}
-          <Route
-            path="/logs/audit"
-            element={
-              <ProtectedRoute roles={["developer", "superadmin"]}>
-                <AuditLogs />
-              </ProtectedRoute>
-            }
-          />
+            {/* Developer routes */}
+            <Route
+              path="/logs/audit"
+              element={
+                <ProtectedRoute roles={["developer", "superadmin"]}>
+                  <AuditLogs />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/logs/errors"
-            element={
-              <ProtectedRoute roles={["developer", "superadmin"]}>
-                <ErrorLogs />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/logs/errors"
+              element={
+                <ProtectedRoute roles={["developer", "superadmin"]}>
+                  <ErrorLogs />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </AuthProvider>
-    </BrowserRouter>
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </AuthProvider>
+      </BrowserRouter>
+    </QueryClientProvider>
   );
 }
 

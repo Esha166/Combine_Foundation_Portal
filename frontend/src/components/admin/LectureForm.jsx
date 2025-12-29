@@ -1,186 +1,112 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
 import { useAuth } from '../../context/AuthContext';
 import Navbar from '../shared/Navbar';
 import GoBackButton from '../shared/GoBackButton';
-import { createLecture, updateLecture, getLecture } from '../../services/lectureService';
-import { categoryService } from '../../services/categoryService';
+import Button from '../ui/Button';
+import LectureBasicInfo from './lectures/LectureBasicInfo';
+import LectureMedia from './lectures/LectureMedia';
+import LectureSettings from './lectures/LectureSettings';
+import { useCreateLecture, useUpdateLecture, useLecture } from '../../hooks/useLectures';
 
 const LectureForm = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { id } = useParams();
-  const [isEdit, setIsEdit] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [thumbnailFile, setThumbnailFile] = useState(null);
-  const [thumbnailPreview, setThumbnailPreview] = useState(null);
-  const [categories, setCategories] = useState([]);
-  const [showCategoryModal, setShowCategoryModal] = useState(false);
-  const [newCategoryName, setNewCategoryName] = useState('');
-  const [categoryLoading, setCategoryLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    title: '',
-    subtitle: '',
-    thumbnail: '',
-    watchLink: '',
-    description: '',
-    category: '',
-    tags: '',
-    duration: '',
-    isPublic: true
+  const isEdit = !!id;
+
+  const { data: lectureData, isLoading: isLoadingLecture } = useLecture(id);
+  const createLectureMutation = useCreateLecture();
+  const updateLectureMutation = useUpdateLecture();
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    control,
+    setValue,
+    watch,
+    formState: { errors }
+  } = useForm({
+    defaultValues: {
+      title: '',
+      subtitle: '',
+      thumbnail: '', // can be URL or File object
+      watchLink: '',
+      description: '',
+      category: '',
+      tags: '',
+      duration: '',
+      isPublic: true
+    }
   });
 
+  // Load data for edit mode
   useEffect(() => {
-    fetchCategories();
-    if (id) {
-      setIsEdit(true);
-      fetchLecture();
-    }
-  }, [id]);
-
-  const fetchCategories = async () => {
-    try {
-      const response = await categoryService.getCategories('lecture');
-      setCategories(response.data.data || []);
-    } catch (err) {
-      console.error('Error fetching categories:', err);
-    }
-  };
-
-  const fetchLecture = async () => {
-    try {
-      const response = await getLecture(id);
-      const lecture = response.data.data;
-      setFormData({
-        title: lecture.title,
+    if (lectureData && lectureData.data) {
+      const lecture = lectureData.data;
+      reset({
+        title: lecture.title || '',
         subtitle: lecture.subtitle || '',
-        thumbnail: lecture.thumbnail,
-        watchLink: lecture.watchLink,
+        thumbnail: lecture.thumbnail || '',
+        watchLink: lecture.watchLink || '',
         description: lecture.description || '',
         category: lecture.category || '',
         tags: Array.isArray(lecture.tags) ? lecture.tags.join(', ') : lecture.tags || '',
         duration: lecture.duration || '',
         isPublic: lecture.isPublic
       });
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to fetch lecture');
-      console.error('Error fetching lecture:', err);
     }
-  };
+  }, [lectureData, reset]);
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
-  };
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setThumbnailFile(file);
-
-      // Create a preview URL for the selected file
-      const previewUrl = URL.createObjectURL(file);
-      setThumbnailPreview(previewUrl);
-
-      // Remove the existing thumbnail URL since we're uploading a new image
-      setFormData(prev => ({
-        ...prev,
-        thumbnail: ''
-      }));
-    }
-  };
-
-  const handleCreateCategory = async () => {
-    if (!newCategoryName.trim()) {
-      alert('Please enter a category name');
-      return;
-    }
-
+  const onSubmit = async (data) => {
     try {
-      setCategoryLoading(true);
-      const response = await categoryService.createCategory({
-        name: newCategoryName.trim(),
-        type: 'lecture'
-      });
+      const formData = new FormData();
+      formData.append('title', data.title);
+      formData.append('subtitle', data.subtitle || '');
+      formData.append('watchLink', data.watchLink);
+      formData.append('description', data.description || '');
+      formData.append('category', data.category);
+      formData.append('tags', data.tags ? data.tags.split(',').map(tag => tag.trim()).filter(Boolean).join(',') : '');
+      formData.append('duration', data.duration || '');
+      formData.append('isPublic', data.isPublic);
 
-      // Add new category to list and select it
-      const newCategory = response.data.data;
-      setCategories(prev => [...prev, newCategory].sort((a, b) => a.name.localeCompare(b.name)));
-      setFormData(prev => ({ ...prev, category: newCategory.name }));
+      // Handle thumbnail: if it's a File object, append it. If it's a string (URL), API might expect it differently or ignore if we want to keep existing.
+      // My backend expects 'thumbnail' field to be file or string?
+      // Looking at backend controller: if req.file exists, it uploads. if req.body.thumbnail exists, it uses string?
+      // Let's check handleFileChange in original code.
+      // Original code: if (thumbnailFile) lectureData.append('thumbnail', thumbnailFile);
+      // else if (formData.thumbnail) lectureData.append('thumbnail', formData.thumbnail);
 
-      // Close modal and reset
-      setShowCategoryModal(false);
-      setNewCategoryName('');
-    } catch (err) {
-      alert(err.response?.data?.message || 'Failed to create category');
-    } finally {
-      setCategoryLoading(false);
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    try {
-      // Create form data object to handle both file uploads and other fields
-      const lectureData = new FormData();
-
-      // Add all form fields
-      lectureData.append('title', formData.title);
-      lectureData.append('subtitle', formData.subtitle);
-      lectureData.append('watchLink', formData.watchLink);
-      lectureData.append('description', formData.description);
-      lectureData.append('category', formData.category);
-      lectureData.append('tags', formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag).join(','));
-      lectureData.append('duration', formData.duration);
-      lectureData.append('isPublic', formData.isPublic);
-
-      // Append thumbnail file if provided
-      if (thumbnailFile) {
-        lectureData.append('thumbnail', thumbnailFile);
-      } else {
-        // If no file is uploaded but we have a thumbnail URL, keep it
-        if (formData.thumbnail) {
-          lectureData.append('thumbnail', formData.thumbnail);
-        }
+      if (data.thumbnail instanceof File) {
+        formData.append('thumbnail', data.thumbnail);
+      } else if (typeof data.thumbnail === 'string' && data.thumbnail) {
+        formData.append('thumbnail', data.thumbnail);
       }
 
       if (isEdit) {
-        await updateLecture(id, lectureData, true); // Pass isFormData flag
-        navigate('/admin/lectures'); // You'll need to create this page
+        await updateLectureMutation.mutateAsync({ id, data: formData });
+        navigate('/admin/lectures');
       } else {
-        await createLecture(lectureData, true); // Pass isFormData flag
-        navigate('/lectures');
+        await createLectureMutation.mutateAsync(formData);
+        navigate('/admin/lectures');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to save lecture');
-      console.error('Error saving lecture:', err);
-    } finally {
-      setLoading(false);
+      console.error('Failed to save lecture:', err);
     }
   };
 
-  // Check if user has permission to manage lectures
+  const isLoading = createLectureMutation.isPending || updateLectureMutation.isPending || (isEdit && isLoadingLecture);
+
+  // Permission check
   if (!['admin', 'superadmin', 'developer'].includes(user?.role)) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-            <div className="bg-gradient-to-r from-[#FF6900] to-[#ae4b04] px-8 py-6">
-              <h1 className="text-3xl font-bold text-white">Lecture Form</h1>
-            </div>
-            <div className="p-8 text-center">
-              <div className="text-red-500 text-lg">
-                You do not have permission to access this page.
-              </div>
-            </div>
+          <div className="bg-white rounded-xl shadow-lg p-8 text-center">
+            <div className="text-red-500 text-lg">You do not have permission to access this page.</div>
           </div>
         </div>
       </div>
@@ -201,243 +127,45 @@ const LectureForm = () => {
             <GoBackButton className="text-white" />
           </div>
 
-          {error && (
-            <div className="px-8 py-3 bg-red-50 border-b border-red-200">
-              <p className="text-red-700">{error}</p>
-            </div>
-          )}
-
           <div className="p-8">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Title */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Title *
-                </label>
-                <input
-                  type="text"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6900] focus:border-transparent"
-                  placeholder="Enter lecture title"
-                />
-              </div>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+              <LectureBasicInfo register={register} errors={errors} />
 
-              {/* Subtitle */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Subtitle
-                </label>
-                <input
-                  type="text"
-                  name="subtitle"
-                  value={formData.subtitle}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6900] focus:border-transparent"
-                  placeholder="Enter lecture subtitle (optional)"
-                />
-              </div>
+              <LectureMedia
+                register={register}
+                errors={errors}
+                control={control}
+                thumbnailPreview={lectureData?.data?.thumbnail}
+              />
 
-              {/* Thumbnail */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Thumbnail *
-                </label>
-                <div className="flex flex-col space-y-4">
-                  <input
-                    type="file"
-                    name="thumbnailFile"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6900] focus:border-transparent"
-                  />
-                  {formData.thumbnail && (
-                    <div className="mt-2">
-                      <p className="text-sm text-gray-600">Current thumbnail:</p>
-                      <img
-                        src={formData.thumbnail}
-                        alt="Current thumbnail"
-                        className="mt-1 max-h-32 rounded-lg border border-gray-200"
-                      />
-                    </div>
-                  )}
-                  {thumbnailPreview && (
-                    <div className="mt-2">
-                      <p className="text-sm text-gray-600">Preview:</p>
-                      <img
-                        src={thumbnailPreview}
-                        alt="Thumbnail preview"
-                        className="mt-1 max-h-32 rounded-lg border border-gray-200"
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
+              <LectureSettings
+                register={register}
+                errors={errors}
+                setValue={setValue}
+                watch={watch}
+              />
 
-              {/* Watch Link */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Watch Link *
-                </label>
-                <input
-                  type="url"
-                  name="watchLink"
-                  value={formData.watchLink}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6900] focus:border-transparent"
-                  placeholder="Enter watch link URL (YouTube, Vimeo, etc.)"
-                />
-              </div>
-
-              {/* Description */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Description
-                </label>
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  rows="4"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6900] focus:border-transparent"
-                  placeholder="Enter lecture description (optional)"
-                />
-              </div>
-
-              {/* Category */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Category
-                </label>
-                <div className="flex gap-2">
-                  <select
-                    name="category"
-                    value={formData.category}
-                    onChange={handleChange}
-                    className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6900] focus:border-transparent"
-                  >
-                    <option value="">Select a category</option>
-                    {categories.map((cat) => (
-                      <option key={cat._id} value={cat.name}>
-                        {cat.name.charAt(0).toUpperCase() + cat.name.slice(1)}
-                      </option>
-                    ))}
-                  </select>
-                  <button
-                    type="button"
-                    onClick={() => setShowCategoryModal(true)}
-                    className="px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition whitespace-nowrap"
-                  >
-                    + Add New
-                  </button>
-                </div>
-              </div>
-
-              {/* Tags */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Tags
-                </label>
-                <input
-                  type="text"
-                  name="tags"
-                  value={formData.tags}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6900] focus:border-transparent"
-                  placeholder="Enter tags separated by commas (e.g., react, javascript, tutorial)"
-                />
-              </div>
-
-              {/* Duration */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Duration
-                </label>
-                <input
-                  type="text"
-                  name="duration"
-                  value={formData.duration}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6900] focus:border-transparent"
-                  placeholder="Enter duration (e.g., 5:30 for 5 minutes 30 seconds)"
-                />
-              </div>
-
-              {/* Is Public */}
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  name="isPublic"
-                  checked={formData.isPublic}
-                  onChange={handleChange}
-                  className="h-4 w-4 text-[#FF6900] focus:ring-[#FF6900] border-gray-300 rounded"
-                />
-                <label className="ml-2 block text-sm text-gray-700">
-                  Make this lecture public
-                </label>
-              </div>
-
-              {/* Submit Button */}
-              <div className="flex space-x-4 pt-4">
-                <button
+              <div className="flex space-x-4 pt-6 border-t border-gray-100">
+                <Button
                   type="submit"
-                  disabled={loading}
-                  className="px-6 py-3 bg-[#FF6900] text-white rounded-lg hover:bg-[#ff6a00d6] transition disabled:opacity-50"
+                  isLoading={createLectureMutation.isPending || updateLectureMutation.isPending}
+                  variant="primary"
+                  className="w-full sm:w-auto px-8"
                 >
-                  {loading ? 'Saving...' : isEdit ? 'Update Lecture' : 'Create Lecture'}
-                </button>
-                <button
+                  {isEdit ? 'Update Lecture' : 'Create Lecture'}
+                </Button>
+                <Button
                   type="button"
+                  variant="secondary"
                   onClick={() => navigate(-1)}
-                  className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50"
+                  className="w-full sm:w-auto"
                 >
                   Cancel
-                </button>
+                </Button>
               </div>
             </form>
           </div>
         </div>
-
-        {/* Add Category Modal */}
-        {showCategoryModal && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center px-4 z-50">
-            <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Add New Category</h3>
-              <p className="text-sm text-gray-600 mb-4">Enter a name for the new lecture category</p>
-              <input
-                type="text"
-                value={newCategoryName}
-                onChange={(e) => setNewCategoryName(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleCreateCategory()}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6900] focus:border-transparent mb-4"
-                placeholder="e.g., Technology, Health, Education"
-                autoFocus
-              />
-              <div className="flex justify-end gap-3">
-                <button
-                  onClick={() => {
-                    setShowCategoryModal(false);
-                    setNewCategoryName('');
-                  }}
-                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
-                  disabled={categoryLoading}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleCreateCategory}
-                  disabled={categoryLoading}
-                  className="px-4 py-2 bg-[#FF6900] text-white rounded hover:bg-[#e65e00] disabled:opacity-50"
-                >
-                  {categoryLoading ? 'Creating...' : 'Create Category'}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
