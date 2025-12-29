@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import Navbar from '../shared/Navbar';
 import GoBackButton from '../shared/GoBackButton';
 import { createLecture, updateLecture, getLecture } from '../../services/lectureService';
+import { categoryService } from '../../services/categoryService';
 
 const LectureForm = () => {
   const { user } = useAuth();
@@ -14,6 +15,10 @@ const LectureForm = () => {
   const [error, setError] = useState(null);
   const [thumbnailFile, setThumbnailFile] = useState(null);
   const [thumbnailPreview, setThumbnailPreview] = useState(null);
+  const [categories, setCategories] = useState([]);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [categoryLoading, setCategoryLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     subtitle: '',
@@ -27,11 +32,21 @@ const LectureForm = () => {
   });
 
   useEffect(() => {
+    fetchCategories();
     if (id) {
       setIsEdit(true);
       fetchLecture();
     }
   }, [id]);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await categoryService.getCategories('lecture');
+      setCategories(response.data.data || []);
+    } catch (err) {
+      console.error('Error fetching categories:', err);
+    }
+  };
 
   const fetchLecture = async () => {
     try {
@@ -66,16 +81,44 @@ const LectureForm = () => {
     const file = e.target.files[0];
     if (file) {
       setThumbnailFile(file);
-      
+
       // Create a preview URL for the selected file
       const previewUrl = URL.createObjectURL(file);
       setThumbnailPreview(previewUrl);
-      
+
       // Remove the existing thumbnail URL since we're uploading a new image
       setFormData(prev => ({
         ...prev,
         thumbnail: ''
       }));
+    }
+  };
+
+  const handleCreateCategory = async () => {
+    if (!newCategoryName.trim()) {
+      alert('Please enter a category name');
+      return;
+    }
+
+    try {
+      setCategoryLoading(true);
+      const response = await categoryService.createCategory({
+        name: newCategoryName.trim(),
+        type: 'lecture'
+      });
+
+      // Add new category to list and select it
+      const newCategory = response.data.data;
+      setCategories(prev => [...prev, newCategory].sort((a, b) => a.name.localeCompare(b.name)));
+      setFormData(prev => ({ ...prev, category: newCategory.name }));
+
+      // Close modal and reset
+      setShowCategoryModal(false);
+      setNewCategoryName('');
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to create category');
+    } finally {
+      setCategoryLoading(false);
     }
   };
 
@@ -87,7 +130,7 @@ const LectureForm = () => {
     try {
       // Create form data object to handle both file uploads and other fields
       const lectureData = new FormData();
-      
+
       // Add all form fields
       lectureData.append('title', formData.title);
       lectureData.append('subtitle', formData.subtitle);
@@ -97,7 +140,7 @@ const LectureForm = () => {
       lectureData.append('tags', formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag).join(','));
       lectureData.append('duration', formData.duration);
       lectureData.append('isPublic', formData.isPublic);
-      
+
       // Append thumbnail file if provided
       if (thumbnailFile) {
         lectureData.append('thumbnail', thumbnailFile);
@@ -147,7 +190,7 @@ const LectureForm = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      
+
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           {/* Header */}
@@ -213,9 +256,9 @@ const LectureForm = () => {
                   {formData.thumbnail && (
                     <div className="mt-2">
                       <p className="text-sm text-gray-600">Current thumbnail:</p>
-                      <img 
-                        src={formData.thumbnail} 
-                        alt="Current thumbnail" 
+                      <img
+                        src={formData.thumbnail}
+                        alt="Current thumbnail"
                         className="mt-1 max-h-32 rounded-lg border border-gray-200"
                       />
                     </div>
@@ -223,9 +266,9 @@ const LectureForm = () => {
                   {thumbnailPreview && (
                     <div className="mt-2">
                       <p className="text-sm text-gray-600">Preview:</p>
-                      <img 
-                        src={thumbnailPreview} 
-                        alt="Thumbnail preview" 
+                      <img
+                        src={thumbnailPreview}
+                        alt="Thumbnail preview"
                         className="mt-1 max-h-32 rounded-lg border border-gray-200"
                       />
                     </div>
@@ -269,14 +312,28 @@ const LectureForm = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Category
                 </label>
-                <input
-                  type="text"
-                  name="category"
-                  value={formData.category}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6900] focus:border-transparent"
-                  placeholder="Enter category (e.g., technology, education, health)"
-                />
+                <div className="flex gap-2">
+                  <select
+                    name="category"
+                    value={formData.category}
+                    onChange={handleChange}
+                    className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6900] focus:border-transparent"
+                  >
+                    <option value="">Select a category</option>
+                    {categories.map((cat) => (
+                      <option key={cat._id} value={cat.name}>
+                        {cat.name.charAt(0).toUpperCase() + cat.name.slice(1)}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => setShowCategoryModal(true)}
+                    className="px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition whitespace-nowrap"
+                  >
+                    + Add New
+                  </button>
+                </div>
               </div>
 
               {/* Tags */}
@@ -343,6 +400,44 @@ const LectureForm = () => {
             </form>
           </div>
         </div>
+
+        {/* Add Category Modal */}
+        {showCategoryModal && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center px-4 z-50">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Add New Category</h3>
+              <p className="text-sm text-gray-600 mb-4">Enter a name for the new lecture category</p>
+              <input
+                type="text"
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleCreateCategory()}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6900] focus:border-transparent mb-4"
+                placeholder="e.g., Technology, Health, Education"
+                autoFocus
+              />
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => {
+                    setShowCategoryModal(false);
+                    setNewCategoryName('');
+                  }}
+                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+                  disabled={categoryLoading}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreateCategory}
+                  disabled={categoryLoading}
+                  className="px-4 py-2 bg-[#FF6900] text-white rounded hover:bg-[#e65e00] disabled:opacity-50"
+                >
+                  {categoryLoading ? 'Creating...' : 'Create Category'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

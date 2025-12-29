@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import Navbar from './shared/Navbar';
 import GoBackButton from './shared/GoBackButton';
 import { getLectures, getLecturesByCategory } from '../services/lectureService';
+import { categoryService } from '../services/categoryService';
 
 const Lectures = () => {
   const { user } = useAuth();
@@ -14,47 +15,51 @@ const Lectures = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalLectures, setTotalLectures] = useState(0);
+  const [categories, setCategories] = useState(['all']);
 
-  const categories = [
-    'all',
-    'technology',
-    'education',
-    'health',
-    'business',
-    'science',
-    'arts',
-    'sports'
-  ];
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     fetchLectures();
   }, [selectedCategory, searchTerm, currentPage]);
 
+  const fetchCategories = async () => {
+    try {
+      const response = await categoryService.getCategories('lecture');
+      const categoryNames = response.data.data.map(cat => cat.name);
+      setCategories(['all', ...categoryNames]);
+    } catch (err) {
+      console.error('Error fetching categories:', err);
+    }
+  };
+
   const fetchLectures = async () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       let response;
       const params = {
         page: currentPage,
         limit: 12
       };
-      
+
       if (searchTerm) {
         params.search = searchTerm;
       }
-      
+
       if (selectedCategory !== 'all') {
         params.category = selectedCategory;
       }
-      
+
       if (selectedCategory !== 'all' && !searchTerm) {
         response = await getLecturesByCategory(selectedCategory, { ...params, page: currentPage });
       } else {
         response = await getLectures(params);
       }
-      
+
       setLectures(response.data.data.lectures);
       setTotalPages(response.data.data.pagination.totalPages);
       setTotalLectures(response.data.data.pagination.totalLectures);
@@ -110,7 +115,7 @@ const Lectures = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           {/* Header */}
@@ -166,11 +171,10 @@ const Lectures = () => {
                   <button
                     key={category}
                     onClick={() => handleCategoryChange(category)}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition ${
-                      selectedCategory === category
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition ${selectedCategory === category
                         ? 'bg-[#FF6900] text-white'
                         : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                    }`}
+                      }`}
                   >
                     {category.charAt(0).toUpperCase() + category.slice(1)}
                   </button>
@@ -247,39 +251,36 @@ const Lectures = () => {
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className={`px-4 py-2 rounded-lg ${
-                    currentPage === 1
+                  className={`px-4 py-2 rounded-lg ${currentPage === 1
                       ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                       : 'bg-[#FF6900] text-white hover:bg-[#ff6a00d6]'
-                  }`}
+                    }`}
                 >
                   Previous
                 </button>
-                
+
                 <div className="flex space-x-1">
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                     <button
                       key={page}
                       onClick={() => handlePageChange(page)}
-                      className={`px-3 py-2 rounded-lg ${
-                        currentPage === page
+                      className={`px-3 py-2 rounded-lg ${currentPage === page
                           ? 'bg-[#FF6900] text-white'
                           : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                      }`}
+                        }`}
                     >
                       {page}
                     </button>
                   ))}
                 </div>
-                
+
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className={`px-4 py-2 rounded-lg ${
-                    currentPage === totalPages
+                  className={`px-4 py-2 rounded-lg ${currentPage === totalPages
                       ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                       : 'bg-[#FF6900] text-white hover:bg-[#ff6a00d6]'
-                  }`}
+                    }`}
                 >
                   Next
                 </button>

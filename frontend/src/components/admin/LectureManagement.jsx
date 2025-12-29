@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import Navbar from '../shared/Navbar';
 import GoBackButton from '../shared/GoBackButton';
 import { getLectures, deleteLecture, toggleLectureStatus } from '../../services/lectureService';
+import { categoryService } from '../../services/categoryService';
 
 const LectureManagement = () => {
   const { user } = useAuth();
@@ -16,29 +17,44 @@ const LectureManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalLectures, setTotalLectures] = useState(0);
+  const [categories, setCategories] = useState(['all']);
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     fetchLectures();
   }, [searchTerm, selectedCategory, currentPage]);
 
+  const fetchCategories = async () => {
+    try {
+      const response = await categoryService.getCategories('lecture');
+      const categoryNames = response.data.data.map(cat => cat.name);
+      setCategories(['all', ...categoryNames]);
+    } catch (err) {
+      console.error('Error fetching categories:', err);
+    }
+  };
+
   const fetchLectures = async () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const params = {
         page: currentPage,
         limit: 10
       };
-      
+
       if (searchTerm) {
         params.search = searchTerm;
       }
-      
+
       if (selectedCategory !== 'all') {
         params.category = selectedCategory;
       }
-      
+
       const response = await getLectures(params);
       setLectures(response.data.data.lectures);
       setTotalPages(response.data.data.pagination.totalPages);
@@ -100,11 +116,6 @@ const LectureManagement = () => {
     }
   };
 
-  const categories = [
-    'all', 'technology', 'education', 'health', 'business', 
-    'science', 'arts', 'sports'
-  ];
-
   if (loading && lectures.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -132,9 +143,9 @@ const LectureManagement = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    
+
 
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           {/* Header */}
@@ -216,11 +227,10 @@ const LectureManagement = () => {
                           e.target.src = '/placeholder-image.jpg'; // Default placeholder
                         }}
                       />
-                      <div className={`absolute top-2 right-2 px-2 py-1 rounded-full text-xs font-semibold ${
-                        lecture.isActive 
-                          ? (lecture.isPublic ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800') 
+                      <div className={`absolute top-2 right-2 px-2 py-1 rounded-full text-xs font-semibold ${lecture.isActive
+                          ? (lecture.isPublic ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800')
                           : 'bg-red-100 text-red-800'
-                      }`}>
+                        }`}>
                         {lecture.isActive ? (lecture.isPublic ? 'Public' : 'Private') : 'Inactive'}
                       </div>
                     </div>
@@ -274,39 +284,36 @@ const LectureManagement = () => {
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className={`px-4 py-2 rounded-lg ${
-                    currentPage === 1
+                  className={`px-4 py-2 rounded-lg ${currentPage === 1
                       ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                       : 'bg-[#FF6900] text-white hover:bg-[#ff6a00d6]'
-                  }`}
+                    }`}
                 >
                   Previous
                 </button>
-                
+
                 <div className="flex space-x-1">
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                     <button
                       key={page}
                       onClick={() => handlePageChange(page)}
-                      className={`px-3 py-2 rounded-lg ${
-                        currentPage === page
+                      className={`px-3 py-2 rounded-lg ${currentPage === page
                           ? 'bg-[#FF6900] text-white'
                           : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                      }`}
+                        }`}
                     >
                       {page}
                     </button>
                   ))}
                 </div>
-                
+
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className={`px-4 py-2 rounded-lg ${
-                    currentPage === totalPages
+                  className={`px-4 py-2 rounded-lg ${currentPage === totalPages
                       ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                       : 'bg-[#FF6900] text-white hover:bg-[#ff6a00d6]'
-                  }`}
+                    }`}
                 >
                   Next
                 </button>

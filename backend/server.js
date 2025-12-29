@@ -7,7 +7,7 @@ import mongoSanitize from 'express-mongo-sanitize';
 import helmet from 'helmet';
 import connectDB from './config/db.js';
 import errorHandler from './middleware/errorHandler.js';
-import {limiter} from './middleware/rateLimiter.js';
+import { limiter } from './middleware/rateLimiter.js';
 
 // Import discriminator models to register them with the base User model
 import './models/Trustee.js';
@@ -29,6 +29,7 @@ import taskRoute from './routes/taskRoutes.js';
 import logsRoute from './routes/logs.js';
 import idCardRoute from './routes/idCard.js';
 import lectureRoute from './routes/lecture.js';
+import categoryRoute from './routes/categoryRoutes.js';
 
 // Load env vars
 const result = dotenv.config();
@@ -77,6 +78,7 @@ app.use('/api/tasks', taskRoute);
 app.use('/api/logs', logsRoute);
 app.use('/api/idcard', idCardRoute);
 app.use('/api/lectures', lectureRoute);
+app.use('/api/categories', categoryRoute);
 
 // Health check
 app.get('/', (req, res) => {
@@ -112,7 +114,7 @@ app.use((error, req, res, next) => {
       message: 'Only image files are allowed (jpg, jpeg, png, webp).'
     });
   }
-  
+
   next(error);
 });
 
