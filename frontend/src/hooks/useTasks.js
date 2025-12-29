@@ -4,7 +4,7 @@ import taskService from '../services/taskService';
 export const useTasks = (params) => {
     return useQuery({
         queryKey: ['tasks', params],
-        queryFn: () => taskService.getAllTasks(params),
+        queryFn: () => taskService.getTasks(params?.userId),
         keepPreviousData: true,
     });
 };
@@ -12,7 +12,7 @@ export const useTasks = (params) => {
 export const useUserTasks = (userId) => {
     return useQuery({
         queryKey: ['user-tasks', userId],
-        queryFn: () => taskService.getUserTasks(userId),
+        queryFn: () => taskService.getTasks(userId),
         enabled: !!userId,
     });
 };
