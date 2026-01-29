@@ -22,7 +22,15 @@ const Login = () => {
     try {
       await login(email, password);
     } catch (err) {
+      const attempts = parseInt(localStorage.getItem('loginAttempts') || '0') + 1;
+      localStorage.setItem('loginAttempts', attempts.toString());
+      
+      if (attempts >= 3) {
+      setError('Too many failed attempts. Please try again later or reset your password.');
+      localStorage.removeItem('loginAttempts');
+      } else {
       setError(err.response?.data?.message || 'Invalid credentials');
+      }
     } finally {
       setLoading(false);
     }
