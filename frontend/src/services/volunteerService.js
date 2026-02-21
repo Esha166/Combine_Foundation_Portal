@@ -2,7 +2,29 @@ import api from './api';
 
 export const volunteerService = {
   applyVolunteer: async (data) => {
-    const response = await api.post('/volunteers/apply', data);
+    const formData = new FormData();
+
+    Object.entries(data).forEach(([key, value]) => {
+      if (value === undefined || value === null) return;
+
+      if (Array.isArray(value)) {
+        formData.append(key, JSON.stringify(value));
+        return;
+      }
+
+      if (typeof value === 'boolean') {
+        formData.append(key, String(value));
+        return;
+      }
+
+      formData.append(key, value);
+    });
+
+    const response = await api.post('/volunteers/apply', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
     return response.data;
   },
 

@@ -4,7 +4,20 @@ import GoBackButton from '../shared/GoBackButton';
 import api from '../../services/api';
 
 const Members = () => {
-  const [members, setMembers] = useState({ admins: [], volunteers: [] });
+  const [members, setMembers] = useState({
+    admins: [],
+    volunteers: [],
+    volunteerCounts: {
+      total: 0,
+      male: 0,
+      female: 0,
+      other: 0,
+      pending: 0,
+      approved: 0,
+      rejected: 0,
+      completed: 0
+    }
+  });
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('admins'); // 'admins' or 'volunteers'
 
@@ -109,6 +122,32 @@ const Members = () => {
               <p className="text-gray-600 mt-2">View all admins and volunteers</p>
             </div>
             <GoBackButton />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+          <div className="bg-white rounded-xl shadow p-4">
+            <p className="text-sm text-gray-500">Total Volunteers</p>
+            <p className="text-2xl font-bold text-[#FF6900]">{members.volunteerCounts?.total || members.volunteers.length}</p>
+            <p className="text-xs text-gray-500 mt-1">
+              Male: {members.volunteerCounts?.male || 0} | Female: {members.volunteerCounts?.female || 0}
+            </p>
+          </div>
+          <div className="bg-white rounded-xl shadow p-4">
+            <p className="text-sm text-gray-500">Approved</p>
+            <p className="text-2xl font-bold text-green-600">{members.volunteerCounts?.approved || 0}</p>
+          </div>
+          <div className="bg-white rounded-xl shadow p-4">
+            <p className="text-sm text-gray-500">Pending</p>
+            <p className="text-2xl font-bold text-yellow-600">{members.volunteerCounts?.pending || 0}</p>
+          </div>
+          <div className="bg-white rounded-xl shadow p-4">
+            <p className="text-sm text-gray-500">Completed</p>
+            <p className="text-2xl font-bold text-blue-600">{members.volunteerCounts?.completed || 0}</p>
+          </div>
+          <div className="bg-white rounded-xl shadow p-4">
+            <p className="text-sm text-gray-500">Rejected</p>
+            <p className="text-2xl font-bold text-red-600">{members.volunteerCounts?.rejected || 0}</p>
           </div>
         </div>
 

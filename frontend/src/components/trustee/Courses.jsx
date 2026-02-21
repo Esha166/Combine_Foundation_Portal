@@ -6,6 +6,8 @@ import api from '../../services/api';
 const Courses = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [detailsLoading, setDetailsLoading] = useState(false);
 
   useEffect(() => {
     fetchCourses();
@@ -20,6 +22,20 @@ const Courses = () => {
       console.error('Error fetching courses:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const openCourseDetails = async (courseId) => {
+    try {
+      setDetailsLoading(true);
+      setSelectedCourse({ _id: courseId });
+      const response = await api.get(`/courses/${courseId}`);
+      setSelectedCourse(response.data.data);
+    } catch (error) {
+      console.error('Error fetching course details:', error);
+      setSelectedCourse(null);
+    } finally {
+      setDetailsLoading(false);
     }
   };
 
@@ -64,7 +80,7 @@ const Courses = () => {
                 </div>
                 
                 <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                  {course.description.substring(0, 100)}...
+                  {course.description ? `${course.description.substring(0, 100)}...` : 'No description available'}
                 </p>
                 
                 <div className="flex items-center text-sm text-gray-500 mb-2">
@@ -82,13 +98,41 @@ const Courses = () => {
                 </div>
                 
                 <div className="flex items-center justify-between">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    Active
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    course.status === 'completed'
+                      ? 'bg-green-100 text-green-800'
+                      : course.status === 'launched'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-yellow-100 text-yellow-800'
+                  }`}>
+                    {(course.status || 'pre-launch').replace('-', ' ')}
                   </span>
                   <span className="text-xs text-gray-500">
                     Created: {new Date(course.createdAt).toLocaleDateString()}
                   </span>
                 </div>
+                <div className="mt-3">
+                  <button
+                    onClick={() => openCourseDetails(course._id)}
+                    className="inline-flex items-center px-3 py-1.5 bg-[#FF6900] text-white text-xs font-medium rounded-md hover:bg-[#e65e00] transition-colors"
+                  >
+                    More
+                  </button>
+                </div>
+
+                {course.status === 'completed' && (
+                  <div className="mt-3">
+                    <p className="text-sm text-gray-500 mb-1">
+                      Total Participants: {course.totalParticipants || 0}
+                    </p>
+                    <p className="text-sm text-gray-500 mb-1">
+                      Male Participants: {course.maleParticipants || 0}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Female Participants: {course.femaleParticipants || 0}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -103,6 +147,52 @@ const Courses = () => {
             </div>
             <h3 className="text-lg font-medium text-gray-900">No active courses</h3>
             <p className="mt-1 text-gray-500">There are currently no active courses in the system.</p>
+          </div>
+        )}
+
+        {selectedCourse && (
+          <div className="fixed inset-0 bg-[#000000a1] flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-gray-900">Course Details</h2>
+                <button
+                  onClick={() => setSelectedCourse(null)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  Close
+                </button>
+              </div>
+
+              {detailsLoading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#FF6900] mx-auto"></div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-sm text-gray-500">ID: {selectedCourse._id}</p>
+                  <p className="text-lg font-semibold text-gray-900">{selectedCourse.title}</p>
+                  {selectedCourse.subtitle && (
+                    <p className="text-sm text-gray-700">{selectedCourse.subtitle}</p>
+                  )}
+                  <p className="text-sm text-gray-500">Status: {(selectedCourse.status || 'pre-launch').replace('-', ' ')}</p>
+                  <p className="text-sm text-gray-500">Category: {selectedCourse.category || 'Uncategorized'}</p>
+                  <p className="text-sm text-gray-500">Duration: {selectedCourse.duration || 'Not specified'}</p>
+                  {selectedCourse.status === 'completed' && (
+                    <>
+                      <p className="text-sm text-gray-500">Total Participants: {selectedCourse.totalParticipants || 0}</p>
+                      <p className="text-sm text-gray-500">Male Participants: {selectedCourse.maleParticipants || 0}</p>
+                      <p className="text-sm text-gray-500">Female Participants: {selectedCourse.femaleParticipants || 0}</p>
+                    </>
+                  )}
+                  <div>
+                    <p className="text-sm font-medium text-gray-700 mb-1">Description</p>
+                    <p className="text-sm text-gray-600 whitespace-pre-line">
+                      {selectedCourse.description || 'No description available'}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

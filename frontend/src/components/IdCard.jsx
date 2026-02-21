@@ -253,7 +253,7 @@ const IdCard = () => {
                         Please contact COMBINE FOUNDATION
                       </p>
                       <p className="text-center font-bold text-sm text-gray-900">
-                        +92 316 378243
+                        +92 319 3372277
                       </p>
                     </div>
                   </div>

@@ -55,7 +55,7 @@ const sendApprovalEmail = async (volunteer, tempPassword) => {
     return { success: false, error: error.message };
   }
 };
-
+ 
 const sendRejectionEmail = async (volunteer, reason) => {
   try {
     const transporter = createTransporter();
@@ -270,11 +270,70 @@ const sendInvitationEmail = async (volunteer, tempPassword) => {
   }
 };
 
+const sendApplicationReceivedEmail = async (volunteer) => {
+  try {
+    const transporter = createTransporter();
+
+    const mailOptions = {
+      from: `Combine Foundation <${process.env.GMAIL_USER}>`,
+      to: volunteer.email,
+      subject: 'We Received Your Volunteer Application',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #2563eb;">Application Submitted Successfully</h2>
+          <p>Dear ${volunteer.name},</p>
+          <p>Thank you for applying to volunteer with Combine Foundation.</p>
+          <p>Your application has been received and is currently under review.</p>
+          <p>We will contact you by email once there is an update on your application status.</p>
+          <p>Best regards,<br>Combine Foundation Team</p>
+        </div>
+      `
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Application received email sent:', info.messageId);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error('Email send error:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+const sendCompletionEmail = async (volunteer) => {
+  try {
+    const transporter = createTransporter();
+
+    const mailOptions = {
+      from: `Combine Foundation <${process.env.GMAIL_USER}>`,
+      to: volunteer.email,
+      subject: 'Thank You for Completing Your Volunteer Journey',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #16a34a;">Volunteer Journey Completed</h2>
+          <p>Dear ${volunteer.name},</p>
+          <p>Congratulations on successfully completing your volunteer journey with Combine Foundation.</p>
+          <p>We sincerely appreciate your time, effort, and contribution.</p>
+          <p>Best regards,<br>Combine Foundation Team</p>
+        </div>
+      `
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Completion email sent:', info.messageId);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error('Email send error:', error);
+    return { success: false, error: error.message };
+  }
+};
+
 export {
   sendApprovalEmail,
   sendRejectionEmail,
   sendPasswordChangeEmail,
   sendForgotPasswordEmail,
   sendInvitationEmail,
-  sendAdminCredentialsEmail
+  sendAdminCredentialsEmail,
+  sendApplicationReceivedEmail,
+  sendCompletionEmail
 };

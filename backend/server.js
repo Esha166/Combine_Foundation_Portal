@@ -96,7 +96,7 @@ app.use((error, req, res, next) => {
     } else if (error.code === 'LIMIT_UNEXPECTED_FILE') {
       return res.status(400).json({
         success: false,
-        message: 'Unexpected field name for image upload. Please use "image" as the field name.'
+        message: 'Unexpected field name for image upload.'
       });
     } else if (error.code === 'LIMIT_FORM_FIELDS') {
       return res.status(400).json({
@@ -132,3 +132,4 @@ process.on('unhandledRejection', (err, promise) => {
   console.log(`Error: ${err.message}`);
   server.close(() => process.exit(1));
 });
+

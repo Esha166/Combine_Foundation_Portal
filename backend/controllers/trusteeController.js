@@ -5,29 +5,57 @@ import User from "../models/User.js";
 
 export const getStats = async (req, res, next) => {
   try {
-    // Get total volunteers (approved only)
-    const totalVolunteers = await Volunteer.countDocuments({
-      status: "approved",
-    });
+    // Use base users collection for trustee totals to include all volunteer records
+    const totalVolunteers = await User.countDocuments({ role: "volunteer" });
 
-    // Get volunteers by gender
-    const maleVolunteers = await Volunteer.countDocuments({
-      status: "approved",
+    // Get volunteers by gender (all volunteer users)
+    const maleVolunteers = await User.countDocuments({
+      role: "volunteer",
       gender: "male",
     });
 
-    const femaleVolunteers = await Volunteer.countDocuments({
-      status: "approved",
+    const femaleVolunteers = await User.countDocuments({
+      role: "volunteer",
       gender: "female",
     });
 
-    const otherVolunteers = await Volunteer.countDocuments({
-      status: "approved",
-      gender: { $in: ["other", "prefer_not_to_say"] },
+    const otherVolunteers = await User.countDocuments({
+      role: "volunteer",
+      gender: { $in: ["other", "prefer_not_to_say", null] },
     });
+
+    // Volunteer counts by status (all volunteer users)
+    const volunteerStatusStats = await User.aggregate([
+      {
+        $match: { role: "volunteer" },
+      },
+      {
+        $group: {
+          _id: "$status",
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    const volunteerStatusCounts = volunteerStatusStats.reduce(
+      (acc, item) => {
+        acc[item._id] = item.count;
+        return acc;
+      },
+      {
+        pending: 0,
+        approved: 0,
+        rejected: 0,
+        completed: 0,
+      }
+    );
 
     // Get total courses
     const totalCourses = await Course.countDocuments({ isActive: true });
+    const totalCompletedCourses = await Course.countDocuments({
+      isActive: true,
+      status: "completed",
+    });
 
     // Get total posts
     const totalPosts = await Post.countDocuments({ isPublished: true });
@@ -57,33 +85,10 @@ export const getStats = async (req, res, next) => {
       },
     ]);
 
-    // Get pending volunteers count
-    const pendingVolunteers = await Volunteer.countDocuments({
-      status: "pending",
-    });
-
-    // Additional statistics for trustees
-    // Course completion stats
-    const courseStats = await Volunteer.aggregate([
-      {
-        $match: { status: "approved" }
-      },
-      {
-        $project: {
-          completedCourses: { $size: { $ifNull: ["$completedCourses", []] } }
-        }
-      },
-      {
-        $group: {
-          _id: null,
-          totalCompletedCourses: { $sum: "$completedCourses" },
-          avgCoursesPerVolunteer: { $avg: "$completedCourses" }
-        }
-      }
-    ]);
-
-    const totalCompletedCourses = courseStats[0] ? courseStats[0].totalCompletedCourses : 0;
-    const avgCoursesPerVolunteer = courseStats[0] ? courseStats[0].avgCoursesPerVolunteer : 0;
+    // Completion rate derived from course status
+    const completionRate = totalCourses > 0
+      ? (totalCompletedCourses / totalCourses) * 100
+      : 0;
 
     // Volunteers by expertise area
     const volunteersByExpertise = await Volunteer.aggregate([
@@ -121,13 +126,16 @@ export const getStats = async (req, res, next) => {
           male: maleVolunteers,
           female: femaleVolunteers,
           other: otherVolunteers,
-          pending: pendingVolunteers,
+          pending: volunteerStatusCounts.pending,
+          approved: volunteerStatusCounts.approved,
+          rejected: volunteerStatusCounts.rejected,
+          completed: volunteerStatusCounts.completed,
           active: recentActivities, // Volunteers active in last 30 days
         },
         courses: {
           total: totalCourses,
           completed: totalCompletedCourses,
-          avgPerVolunteer: Math.round(avgCoursesPerVolunteer * 100) / 100,
+          avgPerVolunteer: Math.round(completionRate * 100) / 100,
         },
         posts: {
           total: totalPosts,
@@ -263,20 +271,47 @@ export const getMembers = async (req, res, next) => {
   try {
     // Get all users with role 'admin' or 'volunteer'
     const members = await User.find({
-      role: { $in: ['admin', 'volunteer'] },
-      isActive: true  // Only active users
-    }).select('name email role isActive createdAt status');
+      role: { $in: ['admin', 'volunteer'] }
+    }).select('name email role isActive createdAt status gender');
 
     // Separate into admins and volunteers
     const admins = members.filter(user => user.role === 'admin');
     const volunteers = members.filter(user => user.role === 'volunteer');
+
+    const volunteerGenderCounts = volunteers.reduce(
+      (acc, volunteer) => {
+        if (volunteer.gender === 'male') acc.male += 1;
+        else if (volunteer.gender === 'female') acc.female += 1;
+        else acc.other += 1;
+        return acc;
+      },
+      { male: 0, female: 0, other: 0 }
+    );
+
+    const volunteerStatusCounts = volunteers.reduce(
+      (acc, volunteer) => {
+        const status = volunteer.status || 'unknown';
+        if (status === 'pending' || status === 'approved' || status === 'rejected' || status === 'completed') {
+          acc[status] += 1;
+        } else {
+          acc.unknown += 1;
+        }
+        return acc;
+      },
+      { pending: 0, approved: 0, rejected: 0, completed: 0, unknown: 0 }
+    );
 
     res.status(200).json({
       success: true,
       data: {
         admins,
         volunteers,
-        totalCount: members.length
+        totalCount: members.length,
+        volunteerCounts: {
+          total: volunteers.length,
+          ...volunteerGenderCounts,
+          ...volunteerStatusCounts
+        }
       }
     });
   } catch (error) {
@@ -308,7 +343,7 @@ export const getPosts = async (req, res, next) => {
 export const getCourses = async (req, res, next) => {
   try {
     const courses = await Course.find({ isActive: true })
-      .select('title description instructor category courseType duration isActive createdAt')
+      .select('title description category duration status totalParticipants maleParticipants femaleParticipants isActive createdAt')
       .sort({ createdAt: -1 });
 
     res.status(200).json({

@@ -95,6 +95,39 @@ userRoute.put('/profile/image', upload.single('image'), async (req, res, next) =
   }
 });
 
+// Update CNIC images
+userRoute.put('/profile/cnic-images', upload.fields([
+  { name: 'cnicFrontImage', maxCount: 1 },
+  { name: 'cnicBackImage', maxCount: 1 }
+]), async (req, res, next) => {
+  try {
+    const frontImage = req.files?.cnicFrontImage?.[0]?.path;
+    const backImage = req.files?.cnicBackImage?.[0]?.path;
+
+    if (!frontImage && !backImage) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please upload at least one CNIC image'
+      });
+    }
+
+    const user = await User.findById(req.user.id);
+
+    if (frontImage) user.cnicFrontImage = frontImage;
+    if (backImage) user.cnicBackImage = backImage;
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'CNIC images updated',
+      data: user
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // Update profile details
 userRoute.put('/profile', async (req, res, next) => {
   try {

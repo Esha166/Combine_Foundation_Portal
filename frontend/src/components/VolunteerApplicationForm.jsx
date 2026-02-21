@@ -8,7 +8,7 @@ const VolunteerApplicationForm = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
-  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({});
 
   const [formData, setFormData] = useState({
     name: '',
@@ -18,6 +18,8 @@ const VolunteerApplicationForm = () => {
     expertise: [],
     age: '',
     cnic: '',
+    cnicFrontImage: null,
+    cnicBackImage: null,
     city: '',
     education: '',
     institute: '',
@@ -31,7 +33,6 @@ const VolunteerApplicationForm = () => {
     termsAgreed: false
   });
 
-  const [submitted, setSubmitted] = useState(false);
 
   // Handle multiple skills selection
   const handleSkillChange = (skill) => {
@@ -51,6 +52,22 @@ const VolunteerApplicationForm = () => {
         ? prev.availabilityDays.filter(d => d !== day)
         : [...prev.availabilityDays, day]
     }));
+    setFieldErrors(prev => {
+      if (!prev.availabilityDays) return prev;
+      const next = { ...prev };
+      delete next.availabilityDays;
+      return next;
+    });
+  };
+
+  const updateField = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    setFieldErrors(prev => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
   };
 
 
@@ -81,6 +98,8 @@ const VolunteerApplicationForm = () => {
                 expertise: [],
                 age: '',
                 cnic: '',
+                cnicFrontImage: null,
+                cnicBackImage: null,
                 city: '',
                 education: '',
                 institute: '',
@@ -132,6 +151,7 @@ const VolunteerApplicationForm = () => {
             onSubmit={async (e) => {
               e.preventDefault();
               setError('');
+              setFieldErrors({});
               setLoading(true);
 
               try {
@@ -186,6 +206,8 @@ const VolunteerApplicationForm = () => {
                   expertise: [],
                   age: '',
                   cnic: '',
+                  cnicFrontImage: null,
+                  cnicBackImage: null,
                   city: '',
                   education: '',
                   institute: '',
@@ -201,12 +223,18 @@ const VolunteerApplicationForm = () => {
                 setLoading(false);
 
               } catch (err) {
-                if (err.response?.data?.message) {
+                if (Array.isArray(err.response?.data?.errors) && err.response.data.errors.length > 0) {
+                  const backendFieldErrors = err.response.data.errors.reduce((acc, curr) => {
+                    if (curr?.field && !acc[curr.field]) {
+                      acc[curr.field] = curr.message;
+                    }
+                    return acc;
+                  }, {});
+
+                  setFieldErrors(backendFieldErrors);
+                  setError(err.response?.data?.message || 'Please fix the highlighted fields and try again.');
+                } else if (err.response?.data?.message) {
                   setError(err.response.data.message);
-                } else if (err.response?.data?.errors) {
-                  // Handle validation errors from Joi with specific field messages
-                  const errorMessages = err.response.data.errors.map(error => error.message);
-                  setError(errorMessages.join(', '));
                 } else {
                   setError(err.response?.data?.message || 'Failed to submit application. Please check all required fields.');
                 }
@@ -232,9 +260,10 @@ const VolunteerApplicationForm = () => {
                     placeholder="Your full name"
                     required
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    onChange={(e) => updateField('name', e.target.value)}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
+                  {fieldErrors.name && <p className="mt-1 text-sm text-red-600">{fieldErrors.name}</p>}
                 </div>
 
                 {/* Age */}
@@ -248,9 +277,10 @@ const VolunteerApplicationForm = () => {
                     type="text"
                     placeholder="e.g., 21"
                     value={formData.age}
-                    onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+                    onChange={(e) => updateField('age', e.target.value)}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
+                  {fieldErrors.age && <p className="mt-1 text-sm text-red-600">{fieldErrors.age}</p>}
                 </div>
 
                 {/* Phone */}
@@ -265,9 +295,10 @@ const VolunteerApplicationForm = () => {
                     placeholder="+92 3xx xxx xxxx"
                     required
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    onChange={(e) => updateField('phone', e.target.value)}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
+                  {fieldErrors.phone && <p className="mt-1 text-sm text-red-600">{fieldErrors.phone}</p>}
                 </div>
 
                 {/* Email */}
@@ -282,9 +313,10 @@ const VolunteerApplicationForm = () => {
                     placeholder="you@example.com"
                     required
                     value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    onChange={(e) => updateField('email', e.target.value)}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
+                  {fieldErrors.email && <p className="mt-1 text-sm text-red-600">{fieldErrors.email}</p>}
                 </div>
               </div>
 
@@ -298,7 +330,7 @@ const VolunteerApplicationForm = () => {
                     id="gender"
                     name="gender"
                     value={formData.gender}
-                    onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                    onChange={(e) => updateField('gender', e.target.value)}
                     required
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
@@ -306,12 +338,13 @@ const VolunteerApplicationForm = () => {
                     <option value="male">Male</option>
                     <option value="female">Female</option>
                   </select>
+                  {fieldErrors.gender && <p className="mt-1 text-sm text-red-600">{fieldErrors.gender}</p>}
                 </div>
 
                 {/* CNIC */}
                 <div>
                   <label htmlFor="cnic" className="block text-sm font-medium text-gray-700 mb-2">
-                    CNIC / B-Form
+                    CNIC / B-Form *
                   </label>
                   <input
                     id="cnic"
@@ -319,22 +352,59 @@ const VolunteerApplicationForm = () => {
                     type="text"
                     placeholder="e.g., 12345-1234567-1"
                     value={formData.cnic}
-                    onChange={(e) => setFormData({ ...formData, cnic: e.target.value })}
+                    required
+                    onChange={(e) => updateField('cnic', e.target.value)}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
+                  {fieldErrors.cnic && <p className="mt-1 text-sm text-red-600">{fieldErrors.cnic}</p>}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                <div>
+                  <label htmlFor="cnicFrontImage" className="block text-sm font-medium text-gray-700 mb-2">
+                    CNIC Front Image *
+                  </label>
+                  <input
+                    id="cnicFrontImage"
+                    name="cnicFrontImage"
+                    type="file"
+                    accept="image/*"
+                    required
+                    onChange={(e) => updateField('cnicFrontImage', e.target.files?.[0] || null)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  {fieldErrors.cnicFrontImage && <p className="mt-1 text-sm text-red-600">{fieldErrors.cnicFrontImage}</p>}
+                </div>
+
+                <div>
+                  <label htmlFor="cnicBackImage" className="block text-sm font-medium text-gray-700 mb-2">
+                    CNIC Back Image *
+                  </label>
+                  <input
+                    id="cnicBackImage"
+                    name="cnicBackImage"
+                    type="file"
+                    accept="image/*"
+                    required
+                    onChange={(e) => updateField('cnicBackImage', e.target.files?.[0] || null)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  {fieldErrors.cnicBackImage && <p className="mt-1 text-sm text-red-600">{fieldErrors.cnicBackImage}</p>}
                 </div>
               </div>
 
               <div className="mt-6">
                 {/* City of Residence */}
                 <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-2">
-                  City of Residence
+                  City of Residence *
                 </label>
                 <select
                   id="city"
                   name="city"
                   value={formData.city}
-                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                  required
+                  onChange={(e) => updateField('city', e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">Select City</option>
@@ -348,6 +418,7 @@ const VolunteerApplicationForm = () => {
                   <option value="quetta">Quetta</option>
                   <option value="other">Other</option>
                 </select>
+                {fieldErrors.city && <p className="mt-1 text-sm text-red-600">{fieldErrors.city}</p>}
                 <div>
                   {formData.city === 'other' && (
                     <input
@@ -370,13 +441,14 @@ const VolunteerApplicationForm = () => {
                 {/* Education Level */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Highest Level of Education
+                    Highest Level of Education *
                   </label>
                   <select
                     id='education'
                     name="education"
                     value={formData.education}
-                    onChange={(e) => setFormData({ ...formData, education: e.target.value })}
+                    required
+                    onChange={(e) => updateField('education', e.target.value)}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">Select Education Level</option>
@@ -386,6 +458,7 @@ const VolunteerApplicationForm = () => {
                     <option value="Bachelors">Bachelors</option>
                     <option value="Others">Others</option>
                   </select>
+                  {fieldErrors.education && <p className="mt-1 text-sm text-red-600">{fieldErrors.education}</p>}
                   <div>
                     {formData.education === "Others" && (
                       <input
@@ -402,33 +475,37 @@ const VolunteerApplicationForm = () => {
                 {/* Institute Name */}
                 <div>
                   <label htmlFor="institute" className="block text-sm font-medium text-gray-700 mb-2">
-                    Institute Name
+                    Institute Name *
                   </label>
                   <input
                     id="institute"
                     name="institute"
                     type="text"
+                    required
                     placeholder="Name of school/college/university"
                     value={formData.institute}
-                    onChange={(e) => setFormData({ ...formData, institute: e.target.value })}
+                    onChange={(e) => updateField('institute', e.target.value)}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
+                  {fieldErrors.institute && <p className="mt-1 text-sm text-red-600">{fieldErrors.institute}</p>}
                 </div>
 
                 {/* Social Media Profile */}
                 <div className="md:col-span-2">
                   <label htmlFor="socialMedia" className="block text-sm font-medium text-gray-700 mb-2">
-                    Social Media Profile Link
+                    Social Media Profile Link *
                   </label>
                   <input
                     id="socialMedia"
                     name="socialMedia"
                     type="text"
                     placeholder="e.g., LinkedIn, GitHub profile link"
+                    required
                     value={formData.socialMedia}
-                    onChange={(e) => setFormData({ ...formData, socialMedia: e.target.value })}
+                    onChange={(e) => updateField('socialMedia', e.target.value)}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
+                  {fieldErrors.socialMedia && <p className="mt-1 text-sm text-red-600">{fieldErrors.socialMedia}</p>}
                 </div>
               </div>
             </div>
@@ -439,7 +516,7 @@ const VolunteerApplicationForm = () => {
 
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Which of your skills would you like to contribute as a volunteer?
+                  Which of your skills would you like to contribute as a volunteer? *
                 </label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {[
@@ -505,6 +582,7 @@ const VolunteerApplicationForm = () => {
                     <span className="text-sm text-gray-700">
                       <input
                         type="text"
+                        required={formData.customSkill !== ''}
                         value={formData.customSkill}
                         onChange={(e) => {
                           const customValue = e.target.value;
@@ -570,7 +648,7 @@ const VolunteerApplicationForm = () => {
                 {/* Prior Experience */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Do you have any prior volunteering experience?
+                    Do you have any prior volunteering experience? *
                   </label>
                   <div className="space-y-2">
                     <label className="flex items-center space-x-2 cursor-pointer">
@@ -579,7 +657,7 @@ const VolunteerApplicationForm = () => {
                         name="priorExperience"
                         value="yes"
                         checked={formData.priorExperience === "yes"}
-                        onChange={() => setFormData({ ...formData, priorExperience: "yes" })}
+                        onChange={() => updateField('priorExperience', 'yes')}
                         className="w-4 h-4 text-primary-600"
                       />
                       <span className="text-sm text-gray-700">Yes</span>
@@ -590,7 +668,7 @@ const VolunteerApplicationForm = () => {
                         name="priorExperience"
                         value="no"
                         checked={formData.priorExperience === "no"}
-                        onChange={() => setFormData({ ...formData, priorExperience: "no" })}
+                        onChange={() => updateField('priorExperience', 'no')}
                         className="w-4 h-4 text-primary-600"
                       />
                       <span className="text-sm text-gray-700">No</span>
@@ -609,11 +687,13 @@ const VolunteerApplicationForm = () => {
                     type="text"
                     placeholder="Briefly describe your role"
                     value={formData.experienceDesc}
-                    onChange={(e) => setFormData({ ...formData, experienceDesc: e.target.value })}
+                    onChange={(e) => updateField('experienceDesc', e.target.value)}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
+                  {fieldErrors.experienceDesc && <p className="mt-1 text-sm text-red-600">{fieldErrors.experienceDesc}</p>}
                 </div>
               </div>
+              {fieldErrors.priorExperience && <p className="mt-3 text-sm text-red-600">{fieldErrors.priorExperience}</p>}
             </div>
 
             {/* Page 4 - Availability and Terms */}
@@ -646,7 +726,7 @@ const VolunteerApplicationForm = () => {
                 <select
                   name="availabilityHours"
                   value={formData.availabilityHours}
-                  onChange={(e) => setFormData({ ...formData, availabilityHours: e.target.value })}
+                  onChange={(e) => updateField('availabilityHours', e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">Select Hours</option>
@@ -655,14 +735,17 @@ const VolunteerApplicationForm = () => {
                   <option value="8–10 hours per week">8–10 hours per week</option>
                   <option value="10+ hours per week">10+ hours per week</option>
                 </select>
+                {fieldErrors.availabilityHours && <p className="mt-1 text-sm text-red-600">{fieldErrors.availabilityHours}</p>}
               </div>
+
+              {fieldErrors.availabilityDays && <p className="mb-4 text-sm text-red-600">{fieldErrors.availabilityDays}</p>}
 
               <div className="mb-6">
                 <label className="flex items-start space-x-2 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={formData.termsAgreed}
-                    onChange={(e) => setFormData({ ...formData, termsAgreed: e.target.checked })}
+                    onChange={(e) => updateField('termsAgreed', e.target.checked)}
                     required
                     className="mt-1 w-4 h-4 text-primary-600 rounded"
                   />
@@ -670,6 +753,7 @@ const VolunteerApplicationForm = () => {
                     I agree to follow the policies and code of conduct of Combine Foundation. I understand this is a voluntary, unpaid role with no financial compensation.
                   </span>
                 </label>
+                {fieldErrors.termsAgreed && <p className="mt-1 text-sm text-red-600">{fieldErrors.termsAgreed}</p>}
               </div>
             </div>
 
@@ -682,13 +766,9 @@ const VolunteerApplicationForm = () => {
               >
                 {loading ? 'Submitting...' : 'Submit Application'}
               </button>
-              <p className="mt-3 text-sm text-gray-600">We will contact you after review.</p>
             </div>
           </form>
 
-          <div className="mt-6 text-sm text-gray-500">
-            <p>Note: Your responses will be stored securely in our database.</p>
-          </div>
         </div>
       </div>
     </div>

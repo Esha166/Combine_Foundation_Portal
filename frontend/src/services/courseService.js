@@ -12,16 +12,12 @@ export const courseService = {
   },
 
   createCourse: async (formData) => {
-    const response = await api.post('/courses', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
+    const response = await api.post('/courses', formData);
     return response.data;
   },
 
   updateCourse: async (id, formData) => {
-    const response = await api.put(`/courses/${id}`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
+    const response = await api.put(`/courses/${id}`, formData);
     return response.data;
   },
 

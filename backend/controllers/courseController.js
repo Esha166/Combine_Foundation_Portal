@@ -15,7 +15,46 @@ export const createCourse = async (req, res, next) => {
       });
     }
 
-    const { title, subtitle, description, registrationLink, socialLink } = req.body;
+    const {
+      title,
+      subtitle,
+      description,
+      registrationLink,
+      socialLink,
+      category,
+      duration,
+      status,
+      totalParticipants,
+      maleParticipants,
+      femaleParticipants
+    } = req.body;
+
+    const parsedTotalParticipants = totalParticipants !== undefined && totalParticipants !== ''
+      ? Number(totalParticipants)
+      : 0;
+    const parsedMaleParticipants = maleParticipants !== undefined && maleParticipants !== ''
+      ? Number(maleParticipants)
+      : 0;
+    const parsedFemaleParticipants = femaleParticipants !== undefined && femaleParticipants !== ''
+      ? Number(femaleParticipants)
+      : 0;
+
+    if (
+      status === 'completed' &&
+      (Number.isNaN(parsedTotalParticipants) || Number.isNaN(parsedMaleParticipants) || Number.isNaN(parsedFemaleParticipants))
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: 'Participants fields must be valid numbers'
+      });
+    }
+
+    if (status === 'completed' && parsedTotalParticipants < parsedMaleParticipants + parsedFemaleParticipants) {
+      return res.status(400).json({
+        success: false,
+        message: 'Total participants cannot be less than male + female participants'
+      });
+    }
 
     // Check if file was uploaded successfully
     if (!req.file) {
@@ -32,6 +71,12 @@ export const createCourse = async (req, res, next) => {
       imageUrl: req.file.path,
       registrationLink,
       socialLink,
+      category,
+      duration,
+      status,
+      totalParticipants: status === 'completed' ? parsedTotalParticipants : 0,
+      maleParticipants: status === 'completed' ? parsedMaleParticipants : 0,
+      femaleParticipants: status === 'completed' ? parsedFemaleParticipants : 0,
       createdBy: req.user.id
     });
 
@@ -116,15 +161,68 @@ export const updateCourse = async (req, res, next) => {
       });
     }
 
-    const { title, subtitle, description, registrationLink, socialLink, isActive } = req.body;
+    const {
+      title,
+      subtitle,
+      description,
+      registrationLink,
+      socialLink,
+      category,
+      duration,
+      status,
+      totalParticipants,
+      maleParticipants,
+      femaleParticipants,
+      isActive
+    } = req.body;
 
     // Update fields
-    if (title) course.title = title;
-    if (subtitle) course.subtitle = subtitle;
-    if (description) course.description = description;
-    if (registrationLink) course.registrationLink = registrationLink;
-    if (socialLink) course.socialLink = socialLink;
+    if (title !== undefined) course.title = title;
+    if (subtitle !== undefined) course.subtitle = subtitle;
+    if (description !== undefined) course.description = description;
+    if (registrationLink !== undefined) course.registrationLink = registrationLink;
+    if (socialLink !== undefined) course.socialLink = socialLink;
+    if (category !== undefined) course.category = category;
+    if (duration !== undefined) course.duration = duration;
+    if (status !== undefined) course.status = status;
     if (isActive !== undefined) course.isActive = isActive;
+
+    const parsedTotalParticipants = totalParticipants !== undefined && totalParticipants !== ''
+      ? Number(totalParticipants)
+      : course.totalParticipants || 0;
+    const parsedMaleParticipants = maleParticipants !== undefined && maleParticipants !== ''
+      ? Number(maleParticipants)
+      : course.maleParticipants || 0;
+    const parsedFemaleParticipants = femaleParticipants !== undefined && femaleParticipants !== ''
+      ? Number(femaleParticipants)
+      : course.femaleParticipants || 0;
+
+    if (
+      course.status === 'completed' &&
+      (Number.isNaN(parsedTotalParticipants) || Number.isNaN(parsedMaleParticipants) || Number.isNaN(parsedFemaleParticipants))
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: 'Participants fields must be valid numbers'
+      });
+    }
+
+    if (course.status === 'completed' && parsedTotalParticipants < parsedMaleParticipants + parsedFemaleParticipants) {
+      return res.status(400).json({
+        success: false,
+        message: 'Total participants cannot be less than male + female participants'
+      });
+    }
+
+    if (course.status === 'completed') {
+      course.totalParticipants = parsedTotalParticipants;
+      course.maleParticipants = parsedMaleParticipants;
+      course.femaleParticipants = parsedFemaleParticipants;
+    } else {
+      course.totalParticipants = 0;
+      course.maleParticipants = 0;
+      course.femaleParticipants = 0;
+    }
 
     // Update image if new one provided
     if (req.file) {

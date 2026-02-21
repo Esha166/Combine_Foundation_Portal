@@ -1,14 +1,50 @@
 import Volunteer from "../models/Volunteer.js";
+import { createVolunteerValidator } from "../validators/volunteerValidator.js";
 import { generatePassword } from "../utils/generatePassword.js";
 import {
   sendApprovalEmail,
   sendRejectionEmail,
   sendInvitationEmail,
+  sendApplicationReceivedEmail,
+  sendCompletionEmail
 } from "../utils/emailService.js";
 import { logAuditEvent } from "../utils/auditLogger.js";
 
 export const createVolunteer = async (req, res, next) => {
   try {
+    const parseArrayField = (value) => {
+      if (Array.isArray(value)) return value;
+      if (typeof value !== "string" || value.trim() === "") return [];
+      try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [value];
+      }
+    };
+
+    const normalizedPayload = {
+      ...req.body,
+      expertise: parseArrayField(req.body.expertise),
+      skills: parseArrayField(req.body.skills),
+      availabilityDays: parseArrayField(req.body.availabilityDays),
+      termsAgreed: req.body.termsAgreed === true || req.body.termsAgreed === "true",
+      cnicFrontImage: req.files?.cnicFrontImage?.[0]?.path,
+      cnicBackImage: req.files?.cnicBackImage?.[0]?.path
+    };
+
+    const { error } = createVolunteerValidator.validate(normalizedPayload, { abortEarly: false });
+
+    if (error) {
+      return res.status(400).json({
+        success: false,
+        errors: error.details.map((err) => ({
+          field: err.path[0],
+          message: err.message
+        }))
+      });
+    }
+
     const {
       name,
       email,
@@ -27,12 +63,21 @@ export const createVolunteer = async (req, res, next) => {
       experienceDesc,
       availabilityDays,
       availabilityHours,
-      termsAgreed
-    } = req.body;
+      termsAgreed,
+      cnicFrontImage,
+      cnicBackImage
+    } = normalizedPayload;
 
     // Check if volunteer already exists
     const existingVolunteer = await Volunteer.findOne({ email });
     if (existingVolunteer) {
+      if (existingVolunteer.status === "rejected") {
+        return res.status(400).json({
+          success: false,
+          message: "Your previous application was rejected. You cannot apply again with this email.",
+        });
+      }
+
       return res.status(400).json({
         success: false,
         message: "Volunteer with this email already exists",
@@ -62,10 +107,15 @@ export const createVolunteer = async (req, res, next) => {
       availabilityDays,
       availabilityHours,
       termsAgreed,
+      cnicFrontImage,
+      cnicBackImage,
       password: tempPassword,
       role: "volunteer",
       status: "pending",
     });
+
+    // Notify volunteer that the application has been submitted successfully
+    await sendApplicationReceivedEmail(volunteer);
 
     res.status(201).json({
       success: true,
@@ -140,7 +190,7 @@ export const approveVolunteer = async (req, res, next) => {
 
 export const rejectVolunteer = async (req, res, next) => {
   try {
-    const { reason } = req.body;
+    const reason = req.body.reason?.trim();
     const volunteer = await Volunteer.findById(req.params.id).select('-password');
 
     if (!volunteer) {
@@ -149,6 +199,14 @@ export const rejectVolunteer = async (req, res, next) => {
         message: "Volunteer not found",
       });
     }
+
+    if (!reason) {
+      return res.status(400).json({
+        success: false,
+        message: "Rejection reason is required",
+      });
+    }
+
     volunteer.status = "rejected";
     volunteer.rejectionReason = reason;
     await volunteer.save();
@@ -189,6 +247,9 @@ export const completeVolunteer = async (req, res, next) => {
 
     volunteer.status = "completed";
     await volunteer.save();
+
+    // Notify volunteer after completion status update
+    await sendCompletionEmail(volunteer);
 
     // Create audit log
     await logAuditEvent('volunteer_completed', req.user.id, volunteer._id, req.ip);

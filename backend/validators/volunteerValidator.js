@@ -11,7 +11,7 @@ const createVolunteerValidator = Joi.object({
     'any.required': 'Email is required'
   }),
   phone: Joi.string().pattern(/^\+?[1-9]\d{1,14}$/).optional().messages({
-    'string.pattern.base': 'Please provide a valid phone number'
+    'string.pattern.base': 'Please provide a valid phone number with country code'
   }),
   gender: Joi.string().valid('male', 'female', 'other', 'prefer_not_to_say').required().messages({
     'any.only': 'Gender must be male, female, other, or prefer_not_to_say',
@@ -19,8 +19,20 @@ const createVolunteerValidator = Joi.object({
   }),
   expertise: Joi.array().items(Joi.string()).optional(),
   appliedFormId: Joi.string().optional(),
-  cnic: Joi.string().allow('').optional().messages({
-    'string.max': 'CNIC cannot exceed 100 characters'
+  cnic: Joi.string()
+    .pattern(/^(?=.{14,16}$)[0-9-]+$/)
+    .allow('')
+    .optional()
+    .messages({
+      'string.pattern.base': 'CNIC must be 14 to 16 characters and can contain only numbers and hyphens (-)'
+    }),
+  cnicFrontImage: Joi.string().uri().required().messages({
+    'string.uri': 'CNIC front image must be a valid URL',
+    'any.required': 'CNIC front image is required'
+  }),
+  cnicBackImage: Joi.string().uri().required().messages({
+    'string.uri': 'CNIC back image must be a valid URL',
+    'any.required': 'CNIC back image is required'
   }),
   age: Joi.string().pattern(/^[0-9]{1,3}$/).allow('').optional().messages({
     'string.pattern.base': 'Age must be a valid number between 13 and 100',

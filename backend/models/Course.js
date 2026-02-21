@@ -26,6 +26,34 @@ const courseSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  category: {
+    type: String,
+    trim: true
+  },
+  duration: {
+    type: String,
+    trim: true
+  },
+  status: {
+    type: String,
+    enum: ['pre-launch', 'launched', 'completed'],
+    default: 'pre-launch'
+  },
+  totalParticipants: {
+    type: Number,
+    min: 0,
+    default: 0
+  },
+  maleParticipants: {
+    type: Number,
+    min: 0,
+    default: 0
+  },
+  femaleParticipants: {
+    type: Number,
+    min: 0,
+    default: 0
+  },
   isActive: {
     type: Boolean,
     default: true
@@ -45,9 +73,8 @@ const courseSchema = new mongoose.Schema({
   }
 });
 
-courseSchema.pre('save', function(next) {
+courseSchema.pre('save', function() {
   this.updatedAt = Date.now();
-  next();
 });
 
 export default mongoose.model('Course', courseSchema);

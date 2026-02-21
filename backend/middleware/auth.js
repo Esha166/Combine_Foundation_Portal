@@ -34,6 +34,13 @@ const protect = async (req, res, next) => {
       });
     }
 
+    if (req.user.role === 'volunteer' && req.user.status === 'completed') {
+      return res.status(403).json({
+        success: false,
+        message: 'Your volunteer access has ended. Please contact admin for further assistance.'
+      });
+    }
+
     next();
   } catch (error) {
     return res.status(401).json({
