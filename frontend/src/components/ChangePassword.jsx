@@ -91,6 +91,7 @@ const ChangePassword = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <PasswordInput
+              placeholder='First time user, write temporary password here which you received in email'
                 label="Current Password"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}

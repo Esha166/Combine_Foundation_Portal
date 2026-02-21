@@ -7,6 +7,12 @@ const CourseForm = ({ course, onSubmit, onCancel, loading }) => {
     description: "",
     registrationLink: "",
     socialLink: "",
+    category: "",
+    duration: "",
+    status: "pre-launch",
+    totalParticipants: "",
+    maleParticipants: "",
+    femaleParticipants: "",
     image: null,
   });
 
@@ -18,6 +24,12 @@ const CourseForm = ({ course, onSubmit, onCancel, loading }) => {
         description: course.description || "",
         registrationLink: course.registrationLink || "",
         socialLink: course.socialLink || "",
+        category: course.category || "",
+        duration: course.duration || "",
+        status: course.status || "pre-launch",
+        totalParticipants: course.totalParticipants ?? "",
+        maleParticipants: course.maleParticipants ?? "",
+        femaleParticipants: course.femaleParticipants ?? "",
         image: null,
       });
     }
@@ -32,6 +44,14 @@ const CourseForm = ({ course, onSubmit, onCancel, loading }) => {
     data.append("description", formData.description);
     data.append("registrationLink", formData.registrationLink);
     data.append("socialLink", formData.socialLink);
+    data.append("category", formData.category);
+    data.append("duration", formData.duration);
+    data.append("status", formData.status);
+    if (formData.status === "completed") {
+      data.append("totalParticipants", formData.totalParticipants || "0");
+      data.append("maleParticipants", formData.maleParticipants || "0");
+      data.append("femaleParticipants", formData.femaleParticipants || "0");
+    }
     if (formData.image) {
       data.append("image", formData.image);
     }
@@ -130,6 +150,101 @@ const CourseForm = ({ course, onSubmit, onCancel, loading }) => {
           placeholder="https://..."
         />
       </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Category
+        </label>
+        <input
+          type="text"
+          value={formData.category}
+          onChange={(e) =>
+            setFormData({ ...formData, category: e.target.value })
+          }
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          placeholder="e.g. Tech, Marketing, Education"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Duration
+        </label>
+        <input
+          type="text"
+          value={formData.duration}
+          onChange={(e) =>
+            setFormData({ ...formData, duration: e.target.value })
+          }
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          placeholder="e.g. 8 weeks"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Course Status
+        </label>
+        <select
+          value={formData.status}
+          onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
+          <option value="pre-launch">Pre-launch</option>
+          <option value="launched">Launched</option>
+          <option value="completed">Completed</option>
+        </select>
+      </div>
+
+      {formData.status === "completed" && (
+        <>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Total Participants
+            </label>
+            <input
+              type="number"
+              min="0"
+              required
+              value={formData.totalParticipants}
+              onChange={(e) =>
+                setFormData({ ...formData, totalParticipants: e.target.value })
+              }
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Male Participants
+            </label>
+            <input
+              type="number"
+              min="0"
+              required
+              value={formData.maleParticipants}
+              onChange={(e) =>
+                setFormData({ ...formData, maleParticipants: e.target.value })
+              }
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Female Participants
+            </label>
+            <input
+              type="number"
+              min="0"
+              required
+              value={formData.femaleParticipants}
+              onChange={(e) =>
+                setFormData({ ...formData, femaleParticipants: e.target.value })
+              }
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+        </>
+      )}
 
       <div className="flex space-x-4 pt-4">
         <button

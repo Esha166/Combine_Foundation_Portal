@@ -14,6 +14,8 @@ const Profile = () => {
     phone: '',
     gender: '',
     cnic: '',
+    cnicFrontImage: '',
+    cnicBackImage: '',
     age: '',
     city: '',
     education: '',
@@ -28,6 +30,10 @@ const Profile = () => {
   });
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [cnicFrontFile, setCnicFrontFile] = useState(null);
+  const [cnicBackFile, setCnicBackFile] = useState(null);
+  const [cnicFrontPreview, setCnicFrontPreview] = useState(null);
+  const [cnicBackPreview, setCnicBackPreview] = useState(null);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState(''); // 'success' or 'error'
 
@@ -39,6 +45,8 @@ const Profile = () => {
         phone: user.phone || '',
         gender: user.gender || '',
         cnic: user.cnic || '',
+        cnicFrontImage: user.cnicFrontImage || '',
+        cnicBackImage: user.cnicBackImage || '',
         age: user.age || '',
         city: user.city || '',
         education: user.education || '',
@@ -112,12 +120,28 @@ const Profile = () => {
       // Update the auth context with new data
       updateUser(updatedUserData);
 
+      if (cnicFrontFile || cnicBackFile) {
+        const cnicFormData = new FormData();
+        if (cnicFrontFile) cnicFormData.append('cnicFrontImage', cnicFrontFile);
+        if (cnicBackFile) cnicFormData.append('cnicBackImage', cnicBackFile);
+
+        const cnicResponse = await api.put('/user/profile/cnic-images', cnicFormData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+
+        updateUser(cnicResponse.data.data);
+        updatedUserData.cnicFrontImage = cnicResponse.data.data.cnicFrontImage;
+        updatedUserData.cnicBackImage = cnicResponse.data.data.cnicBackImage;
+      }
+
       // Update local form state to match the saved data
       setFormData({
         name: updatedUserData.name || '',
         phone: updatedUserData.phone || '',
         gender: updatedUserData.gender || '',
         cnic: updatedUserData.cnic || '',
+        cnicFrontImage: updatedUserData.cnicFrontImage || '',
+        cnicBackImage: updatedUserData.cnicBackImage || '',
         age: updatedUserData.age || '',
         city: updatedUserData.city || '',
         education: updatedUserData.education || '',
@@ -130,6 +154,11 @@ const Profile = () => {
         availabilityDays: Array.isArray(updatedUserData.availabilityDays) ? updatedUserData.availabilityDays : (updatedUserData.availabilityDays ? updatedUserData.availabilityDays.split(',') : []),
         availabilityHours: updatedUserData.availabilityHours || ''
       });
+
+      setCnicFrontFile(null);
+      setCnicBackFile(null);
+      setCnicFrontPreview(null);
+      setCnicBackPreview(null);
 
       setEditing(false);
       setMessage('Profile updated successfully!');
@@ -326,6 +355,77 @@ const Profile = () => {
                           }`}
                         placeholder={editing ? "Enter CNIC / B-Form" : ""}
                       />
+                    </div>
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      CNIC Images
+                    </label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="border border-gray-200 rounded-lg p-3">
+                        <p className="text-sm font-medium text-gray-800 mb-2">Front</p>
+                        {cnicFrontPreview || formData.cnicFrontImage ? (
+                          <a href={cnicFrontPreview || formData.cnicFrontImage} target="_blank" rel="noopener noreferrer">
+                            <img
+                              src={cnicFrontPreview || formData.cnicFrontImage}
+                              alt="CNIC Front"
+                              className="w-full h-44 object-cover rounded-md border border-gray-200"
+                            />
+                          </a>
+                        ) : (
+                          <div className="w-full h-44 rounded-md border border-dashed border-gray-300 bg-gray-50 flex items-center justify-center text-sm text-gray-500">
+                            Not uploaded
+                          </div>
+                        )}
+                        {editing && (
+                          <label className="mt-3 inline-block cursor-pointer px-3 py-2 bg-[#FF6900] text-white rounded-lg hover:bg-[#ff6a00d6] transition text-sm">
+                            Replace Front Image
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0] || null;
+                                setCnicFrontFile(file);
+                                setCnicFrontPreview(file ? URL.createObjectURL(file) : null);
+                              }}
+                            />
+                          </label>
+                        )}
+                      </div>
+
+                      <div className="border border-gray-200 rounded-lg p-3">
+                        <p className="text-sm font-medium text-gray-800 mb-2">Back</p>
+                        {cnicBackPreview || formData.cnicBackImage ? (
+                          <a href={cnicBackPreview || formData.cnicBackImage} target="_blank" rel="noopener noreferrer">
+                            <img
+                              src={cnicBackPreview || formData.cnicBackImage}
+                              alt="CNIC Back"
+                              className="w-full h-44 object-cover rounded-md border border-gray-200"
+                            />
+                          </a>
+                        ) : (
+                          <div className="w-full h-44 rounded-md border border-dashed border-gray-300 bg-gray-50 flex items-center justify-center text-sm text-gray-500">
+                            Not uploaded
+                          </div>
+                        )}
+                        {editing && (
+                          <label className="mt-3 inline-block cursor-pointer px-3 py-2 bg-[#FF6900] text-white rounded-lg hover:bg-[#ff6a00d6] transition text-sm">
+                            Replace Back Image
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0] || null;
+                                setCnicBackFile(file);
+                                setCnicBackPreview(file ? URL.createObjectURL(file) : null);
+                              }}
+                            />
+                          </label>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -582,6 +682,8 @@ const Profile = () => {
                             phone: user?.phone || '',
                             gender: user?.gender || '',
                             cnic: user?.cnic || '',
+                            cnicFrontImage: user?.cnicFrontImage || '',
+                            cnicBackImage: user?.cnicBackImage || '',
                             age: user?.age || '',
                             city: user?.city || '',
                             education: user?.education || '',
@@ -595,6 +697,10 @@ const Profile = () => {
                             availabilityHours: user?.availabilityHours || ''
                           });
                           setEditing(false);
+                          setCnicFrontFile(null);
+                          setCnicBackFile(null);
+                          setCnicFrontPreview(null);
+                          setCnicBackPreview(null);
                           setMessage('');
                           setMessageType('');
                         }}

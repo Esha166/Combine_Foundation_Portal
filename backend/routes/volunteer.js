@@ -3,12 +3,20 @@ import { createVolunteer, getPendingVolunteers, getAllVolunteers, approveVolunte
 import { protect } from '../middleware/auth.js';
 import { roleCheck } from '../middleware/roleCheck.js';
 import { validate } from '../middleware/validator.js';
-import { createVolunteerValidator, rejectVolunteerValidator } from '../validators/volunteerValidator.js';
+import { rejectVolunteerValidator } from '../validators/volunteerValidator.js';
+import { upload } from '../utils/cloudinary.js';
 
 const volunteerRoute = express.Router();
 
 // Public route (webhook from Google Forms)
-volunteerRoute.post('/apply', validate(createVolunteerValidator), createVolunteer);
+volunteerRoute.post(
+  '/apply',
+  upload.fields([
+    { name: 'cnicFrontImage', maxCount: 1 },
+    { name: 'cnicBackImage', maxCount: 1 }
+  ]),
+  createVolunteer
+);
 volunteerRoute.get('/count', getVolunteerCount);
 
 // Protected routes (admin/superadmin/developer only)

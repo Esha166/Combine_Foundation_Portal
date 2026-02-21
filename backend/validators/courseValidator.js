@@ -14,6 +14,12 @@ const createCourseValidator = Joi.object({
   socialLink: Joi.string().uri().optional().allow('').messages({
     'string.uri': 'Please provide a valid URL'
   }),
+  category: Joi.string().max(150).optional().allow(''),
+  duration: Joi.string().max(100).optional().allow(''),
+  status: Joi.string().valid('pre-launch', 'launched', 'completed').optional(),
+  totalParticipants: Joi.number().integer().min(0).optional(),
+  maleParticipants: Joi.number().integer().min(0).optional(),
+  femaleParticipants: Joi.number().integer().min(0).optional(),
   isActive: Joi.boolean().optional()
 });
 
@@ -23,6 +29,12 @@ const updateCourseValidator = Joi.object({
   description: Joi.string().max(2000).optional().allow(''),
   registrationLink: Joi.string().uri().optional().allow(''),
   socialLink: Joi.string().uri().optional().allow(''),
+  category: Joi.string().max(150).optional().allow(''),
+  duration: Joi.string().max(100).optional().allow(''),
+  status: Joi.string().valid('pre-launch', 'launched', 'completed').optional(),
+  totalParticipants: Joi.number().integer().min(0).optional(),
+  maleParticipants: Joi.number().integer().min(0).optional(),
+  femaleParticipants: Joi.number().integer().min(0).optional(),
   isActive: Joi.boolean().optional()
 });
 

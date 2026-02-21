@@ -4,7 +4,7 @@ const auditLogSchema = new mongoose.Schema({
   action: {
     type: String,
     required: true,
-    enum: ['volunteer_approved', 'volunteer_rejected', 'volunteer_invited', 'trustee_created', 'trustee_deleted', 'course_created', 'course_updated', 
+    enum: ['volunteer_approved', 'volunteer_rejected', 'volunteer_completed', 'volunteer_invited', 'trustee_created', 'trustee_deleted', 'course_created', 'course_updated', 
            'course_deleted', 'post_created', 'post_updated', 'post_deleted', 
            'admin_created', 'admin_deleted', 'login', 'password_change', 'password_reset']
   },

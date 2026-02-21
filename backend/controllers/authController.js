@@ -32,6 +32,13 @@ export const login = async (req, res, next) => {
       });
     }
 
+    if (user.role === 'volunteer' && user.status === 'completed') {
+      return res.status(403).json({
+        success: false,
+        message: 'Your volunteer access has ended. Please contact admin for further assistance.'
+      });
+    }
+
     // Check password
     const isMatch = await user.comparePassword(password);
 

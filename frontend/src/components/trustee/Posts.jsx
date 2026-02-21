@@ -6,6 +6,8 @@ import api from '../../services/api';
 const Posts = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedPost, setSelectedPost] = useState(null);
+  const [detailsLoading, setDetailsLoading] = useState(false);
 
   useEffect(() => {
     fetchPosts();
@@ -20,6 +22,20 @@ const Posts = () => {
       console.error('Error fetching posts:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const openPostDetails = async (postId) => {
+    try {
+      setDetailsLoading(true);
+      setSelectedPost({ _id: postId });
+      const response = await api.get(`/posts/${postId}`);
+      setSelectedPost(response.data.data);
+    } catch (error) {
+      console.error('Error fetching post details:', error);
+      setSelectedPost(null);
+    } finally {
+      setDetailsLoading(false);
     }
   };
 
@@ -73,19 +89,27 @@ const Posts = () => {
                     Published
                   </span>
 
-                  {post.socialLink && (
-                    <a
-                      href={post.socialLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => openPostDetails(post._id)}
                       className="inline-flex items-center px-3 py-1.5 bg-[#FF6900] text-white text-xs font-medium rounded-md hover:bg-[#e65e00] transition-colors"
                     >
-                      <svg className="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                      </svg>
-                      View Link
-                    </a>
-                  )}
+                      More
+                    </button>
+                    {post.socialLink && (
+                      <a
+                        href={post.socialLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center px-3 py-1.5 bg-[#FF6900] text-white text-xs font-medium rounded-md hover:bg-[#e65e00] transition-colors"
+                      >
+                        <svg className="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                        View Link
+                      </a>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -101,6 +125,51 @@ const Posts = () => {
             </div>
             <h3 className="text-lg font-medium text-gray-900">No posts yet</h3>
             <p className="mt-1 text-gray-500">There are currently no published posts in the system.</p>
+          </div>
+        )}
+
+        {selectedPost && (
+          <div className="fixed inset-0 bg-[#000000a1] flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-gray-900">Post Details</h2>
+                <button
+                  onClick={() => setSelectedPost(null)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  Close
+                </button>
+              </div>
+
+              {detailsLoading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#FF6900] mx-auto"></div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-sm text-gray-500">ID: {selectedPost._id}</p>
+                  <p className="text-lg font-semibold text-gray-900">{selectedPost.title}</p>
+                  {selectedPost.subtitle && (
+                    <p className="text-sm text-gray-700">{selectedPost.subtitle}</p>
+                  )}
+                  <p className="text-sm text-gray-500">
+                    By {selectedPost.createdBy?.name || selectedPost.author?.name || 'Unknown'}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Created: {selectedPost.createdAt ? new Date(selectedPost.createdAt).toLocaleString() : 'N/A'}
+                  </p>
+                  {selectedPost.socialLink && (
+                    <p className="text-sm text-gray-500 break-all">Link: {selectedPost.socialLink}</p>
+                  )}
+                  <div>
+                    <p className="text-sm font-medium text-gray-700 mb-1">Content</p>
+                    <p className="text-sm text-gray-600 whitespace-pre-line">
+                      {selectedPost.content || 'No content available'}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

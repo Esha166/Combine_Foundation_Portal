@@ -14,6 +14,12 @@ const Courses = () => {
     description: "",
     registrationLink: "",
     socialLink: "",
+    category: "",
+    duration: "",
+    status: "pre-launch",
+    totalParticipants: "",
+    maleParticipants: "",
+    femaleParticipants: "",
     image: null,
   });
   const [message, setMessage] = useState('');
@@ -44,21 +50,25 @@ const Courses = () => {
     data.append("description", formData.description);
     data.append("registrationLink", formData.registrationLink);
     data.append("socialLink", formData.socialLink);
+    data.append("category", formData.category);
+    data.append("duration", formData.duration);
+    data.append("status", formData.status);
+    if (formData.status === "completed") {
+      data.append("totalParticipants", formData.totalParticipants || "0");
+      data.append("maleParticipants", formData.maleParticipants || "0");
+      data.append("femaleParticipants", formData.femaleParticipants || "0");
+    }
     if (formData.image) {
       data.append("image", formData.image);
     }
 
     try {
       if (editingCourse) {
-        await api.put(`/courses/${editingCourse._id}`, data, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        await api.put(`/courses/${editingCourse._id}`, data);
         setMessage("Course updated successfully!");
         setMessageType('success');
       } else {
-        await api.post("/courses", data, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        await api.post("/courses", data);
         setMessage("Course created successfully!");
         setMessageType('success');
       }
@@ -89,6 +99,12 @@ const Courses = () => {
       description: course.description || "",
       registrationLink: course.registrationLink || "",
       socialLink: course.socialLink || "",
+      category: course.category || "",
+      duration: course.duration || "",
+      status: course.status || "pre-launch",
+      totalParticipants: course.totalParticipants ?? "",
+      maleParticipants: course.maleParticipants ?? "",
+      femaleParticipants: course.femaleParticipants ?? "",
       image: null,
     });
     setShowForm(true);
@@ -123,6 +139,12 @@ const Courses = () => {
       description: "",
       registrationLink: "",
       socialLink: "",
+      category: "",
+      duration: "",
+      status: "pre-launch",
+      totalParticipants: "",
+      maleParticipants: "",
+      femaleParticipants: "",
       image: null,
     });
   };
@@ -179,9 +201,39 @@ const Courses = () => {
                   className="w-full h-48 object-cover"
                 />
                 <div className="p-6">
+                  <div className="mb-3">
+                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                      course.status === 'completed'
+                        ? 'bg-green-100 text-green-800'
+                        : course.status === 'launched'
+                          ? 'bg-blue-100 text-blue-800'
+                          : 'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {(course.status || 'pre-launch').replace('-', ' ')}
+                    </span>
+                  </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">
                     {course.title}
                   </h3>
+                  <p className="text-sm text-gray-500 mb-1">
+                    Category: {course.category || "Uncategorized"}
+                  </p>
+                  <p className="text-sm text-gray-500 mb-1">
+                    Duration: {course.duration || "Not specified"}
+                  </p>
+                  {course.status === "completed" && (
+                    <>
+                      <p className="text-sm text-gray-500 mb-1">
+                        Total Participants: {course.totalParticipants || 0}
+                      </p>
+                      <p className="text-sm text-gray-500 mb-1">
+                        Male Participants: {course.maleParticipants || 0}
+                      </p>
+                      <p className="text-sm text-gray-500 mb-3">
+                        Female Participants: {course.femaleParticipants || 0}
+                      </p>
+                    </>
+                  )}
                   {course.subtitle && (
                     <p className="text-gray-600 text-sm mb-4">
                       {course.subtitle}
@@ -310,6 +362,105 @@ const Courses = () => {
                       placeholder="https://..."
                     />
                   </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Category
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.category}
+                      onChange={(e) =>
+                        setFormData({ ...formData, category: e.target.value })
+                      }
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="e.g. Tech, Marketing, Education"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Duration
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.duration}
+                      onChange={(e) =>
+                        setFormData({ ...formData, duration: e.target.value })
+                      }
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="e.g. 8 weeks"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Course Status
+                    </label>
+                    <select
+                      value={formData.status}
+                      onChange={(e) =>
+                        setFormData({ ...formData, status: e.target.value })
+                      }
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="pre-launch">Pre-launch</option>
+                      <option value="launched">Launched</option>
+                      <option value="completed">Completed</option>
+                    </select>
+                  </div>
+
+                  {formData.status === "completed" && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Total Participants
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          required
+                          value={formData.totalParticipants}
+                          onChange={(e) =>
+                            setFormData({ ...formData, totalParticipants: e.target.value })
+                          }
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Male Participants
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          required
+                          value={formData.maleParticipants}
+                          onChange={(e) =>
+                            setFormData({ ...formData, maleParticipants: e.target.value })
+                          }
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Female Participants
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          required
+                          value={formData.femaleParticipants}
+                          onChange={(e) =>
+                            setFormData({ ...formData, femaleParticipants: e.target.value })
+                          }
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 <div className="flex space-x-4 mt-6">

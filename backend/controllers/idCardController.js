@@ -9,6 +9,13 @@ import Developer from '../models/Developer.js';
 import { generateIdCardPDF } from '../utils/pdfGenerator.js';
 import { generateQRCode, generateQRCodeURL } from '../utils/qrCodeUtils.js';
 
+const getValidThruByRole = (role, validFrom = new Date()) => {
+  const baseDate = new Date(validFrom);
+  const monthsToAdd = role === 'volunteer' ? 6 : 12;
+  baseDate.setMonth(baseDate.getMonth() + monthsToAdd);
+  return baseDate;
+};
+
 // Get user ID card information
 export const getIdCard = async (req, res, next) => {
   try {
@@ -68,13 +75,21 @@ export const getIdCard = async (req, res, next) => {
         userId: userId,
         idNumber,
         qrCode: generateQRCodeURL('https://combinegrp.com/combine-foundation/'), // Generate QR code with ID card info
-        validThru: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) // Valid for 1 year
+        validThru: getValidThruByRole(user.role)
       });
     } else {
       // Check if QR code needs update (for existing users)
       const newQRCode = generateQRCodeURL('https://combinegrp.com/combine-foundation/');
-      if (idCard.qrCode !== newQRCode) {
+      const expectedValidThru = getValidThruByRole(user.role, idCard.validFrom);
+      const needsVolunteerValiditySync =
+        user.role === 'volunteer' &&
+        new Date(idCard.validThru).getTime() !== expectedValidThru.getTime();
+
+      if (idCard.qrCode !== newQRCode || needsVolunteerValiditySync) {
         idCard.qrCode = newQRCode;
+        if (needsVolunteerValiditySync) {
+          idCard.validThru = expectedValidThru;
+        }
         await idCard.save();
       }
     }
@@ -123,7 +138,7 @@ export const generateIdCard = async (req, res, next) => {
     if (idCard) {
       // If ID card exists, update its validity dates
       idCard.validFrom = new Date();
-      idCard.validThru = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000); // Valid for 1 year
+      idCard.validThru = getValidThruByRole(req.user.role, idCard.validFrom);
       idCard.issuedAt = new Date();
       // Update QR code to ensure it points to the new URL
       idCard.qrCode = generateQRCodeURL('https://combinegrp.com/combine-foundation/');
@@ -136,7 +151,7 @@ export const generateIdCard = async (req, res, next) => {
         userId: userId,
         idNumber,
         qrCode: generateQRCodeURL('https://combinegrp.com/combine-foundation/'),
-        validThru: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
+        validThru: getValidThruByRole(req.user.role)
       });
     }
 
@@ -235,13 +250,21 @@ export const downloadIdCard = async (req, res, next) => {
         userId: userId,
         idNumber,
         qrCode: generateQRCodeURL('https://combinegrp.com/combine-foundation/'),
-        validThru: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) // Valid for 1 year
+        validThru: getValidThruByRole(user.role)
       });
     } else {
       // Check if QR code needs update (for existing users)
       const newQRCode = generateQRCodeURL('https://combinegrp.com/combine-foundation/');
-      if (idCard.qrCode !== newQRCode) {
+      const expectedValidThru = getValidThruByRole(user.role, idCard.validFrom);
+      const needsVolunteerValiditySync =
+        user.role === 'volunteer' &&
+        new Date(idCard.validThru).getTime() !== expectedValidThru.getTime();
+
+      if (idCard.qrCode !== newQRCode || needsVolunteerValiditySync) {
         idCard.qrCode = newQRCode;
+        if (needsVolunteerValiditySync) {
+          idCard.validThru = expectedValidThru;
+        }
         await idCard.save();
       }
     }

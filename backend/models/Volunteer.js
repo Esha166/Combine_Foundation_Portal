@@ -32,6 +32,14 @@ const volunteerSchema = new mongoose.Schema({
   termsAgreed: {
     type: Boolean,
     default: false
+  },
+  cnicFrontImage: {
+    type: String,
+    trim: true
+  },
+  cnicBackImage: {
+    type: String,
+    trim: true
   }
 });
 
