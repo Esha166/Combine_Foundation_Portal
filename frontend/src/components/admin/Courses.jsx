@@ -219,6 +219,25 @@ const Courses = () => {
                   <h3 className="text-xl font-bold text-gray-900 mb-2">
                     {course.title}
                   </h3>
+                  <p className="text-sm text-gray-500 mb-1">
+                    Category: {course.category || "Uncategorized"}
+                  </p>
+                  <p className="text-sm text-gray-500 mb-1">
+                    Duration: {course.duration || "Not specified"}
+                  </p>
+                  {course.status === "completed" && (
+                    <>
+                      <p className="text-sm text-gray-500 mb-1">
+                        Total Participants: {course.totalParticipants || 0}
+                      </p>
+                      <p className="text-sm text-gray-500 mb-1">
+                        Male Participants: {course.maleParticipants || 0}
+                      </p>
+                      <p className="text-sm text-gray-500 mb-3">
+                        Female Participants: {course.femaleParticipants || 0}
+                      </p>
+                    </>
+                  )}
                   {course.subtitle && (
                     <p className="text-gray-600 text-sm mb-4">
                       {course.subtitle}
