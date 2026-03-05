@@ -50,7 +50,7 @@ const MyPosts = () => {
             <p className="text-gray-600">No posts available at the moment</p>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-6 grid grid-cols-2">
             {posts.map((post) => (
               <div key={post._id} className="bg-white rounded-xl shadow overflow-hidden">
                 {post.imageUrl && (

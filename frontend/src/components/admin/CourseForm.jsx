@@ -8,6 +8,7 @@ const CourseForm = ({ course, onSubmit, onCancel, loading }) => {
     registrationLink: "",
     socialLink: "",
     category: "",
+    instructor: "",
     duration: "",
     status: "pre-launch",
     totalParticipants: "",
@@ -25,6 +26,7 @@ const CourseForm = ({ course, onSubmit, onCancel, loading }) => {
         registrationLink: course.registrationLink || "",
         socialLink: course.socialLink || "",
         category: course.category || "",
+        instructor: course.instructor || "",
         duration: course.duration || "",
         status: course.status || "pre-launch",
         totalParticipants: course.totalParticipants ?? "",
@@ -45,6 +47,7 @@ const CourseForm = ({ course, onSubmit, onCancel, loading }) => {
     data.append("registrationLink", formData.registrationLink);
     data.append("socialLink", formData.socialLink);
     data.append("category", formData.category);
+    data.append("instructor", formData.instructor);
     data.append("duration", formData.duration);
     data.append("status", formData.status);
     if (formData.status === "completed") {
@@ -163,6 +166,21 @@ const CourseForm = ({ course, onSubmit, onCancel, loading }) => {
           }
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           placeholder="e.g. Tech, Marketing, Education"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Instructor Name
+        </label>
+        <input
+          type="text"
+          value={formData.instructor}
+          onChange={(e) =>
+            setFormData({ ...formData, instructor: e.target.value })
+          }
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          placeholder="e.g. John Doe"
         />
       </div>
 

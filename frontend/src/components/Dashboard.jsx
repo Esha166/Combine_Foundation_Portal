@@ -31,7 +31,9 @@ const Dashboard = () => {
           const volunteerData = {};
 
           if (lecturesResponse.status === 'fulfilled') {
-            volunteerData.lectures = lecturesResponse.value.data.data?.lectures || lecturesResponse.value.data;
+            const lecturesPayload = lecturesResponse.value.data?.data;
+            volunteerData.lectures = lecturesPayload?.lectures || lecturesResponse.value.data;
+            volunteerData.totalLectures = lecturesPayload?.pagination?.totalLectures ?? volunteerData.lectures?.length ?? 0;
           }
 
           if (tasksResponse.status === 'fulfilled') {
@@ -116,7 +118,7 @@ const Dashboard = () => {
               />
               <StatsWidget
                 title="Total Lectures"
-                value={data.lectures?.length || 0}
+                value={data.totalLectures ?? data.lectures?.length ?? 0}
                 icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>}
                 color="purple"
               />
@@ -159,7 +161,7 @@ const Dashboard = () => {
                 viewAllLink="/lectures"
                 items={latestLectures.map(lecture => ({
                   title: lecture.title,
-                  description: `By ${lecture.author?.name || 'Unknown'}`,
+                  description: `By ${lecture.instructor || lecture.author?.name || 'N/A'}`,
                   timestamp: new Date(lecture.createdAt).toLocaleDateString(),
                   icon: (
                     <div className="w-8 h-8 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center">

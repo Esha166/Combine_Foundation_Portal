@@ -225,7 +225,7 @@ const Lectures = () => {
                         </p>
                       )}
                       <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
-                        <span>By {lecture.author?.name || 'Unknown'}</span>
+                        <span>By {lecture.instructor || lecture.author?.name || 'N/A'}</span>
                         <span>{lecture.views || 0} views</span>
                       </div>
                       {lecture.category && (

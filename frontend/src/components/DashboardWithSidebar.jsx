@@ -97,7 +97,7 @@ const DashboardWithSidebar = () => {
                     {latestLectures.map((lecture) => (
                       <div key={lecture._id || lecture.id} className="border border-gray-200 rounded-lg p-3 hover:bg-gray-50">
                         <h4 className="font-medium text-gray-900 truncate">{lecture.title}</h4>
-                        <p className="text-sm text-gray-600 truncate">{lecture.author?.name || 'Unknown'}</p>
+                        <p className="text-sm text-gray-600 truncate">{lecture.instructor || lecture.author?.name || 'N/A'}</p>
                         {lecture.createdAt && (
                           <p className="text-xs text-gray-500 mt-1">
                             {new Date(lecture.createdAt).toLocaleDateString()}
@@ -130,7 +130,7 @@ const DashboardWithSidebar = () => {
                     {currentCourses.map((course) => (
                       <div key={course._id || course.id} className="border border-gray-200 rounded-lg p-3 hover:bg-gray-50">
                         <h4 className="font-medium text-gray-900 truncate">{course.title}</h4>
-                        <p className="text-sm text-gray-600 truncate">{course.instructor || 'N/A'}</p>
+                        <p className="text-sm text-gray-600 truncate">{course.instructor || course.createdBy?.name || 'N/A'}</p>
                       </div>
                     ))}
                   </div>

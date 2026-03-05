@@ -15,6 +15,7 @@ const Courses = () => {
     registrationLink: "",
     socialLink: "",
     category: "",
+    instructor: "",
     duration: "",
     status: "pre-launch",
     totalParticipants: "",
@@ -51,6 +52,7 @@ const Courses = () => {
     data.append("registrationLink", formData.registrationLink);
     data.append("socialLink", formData.socialLink);
     data.append("category", formData.category);
+    data.append("instructor", formData.instructor);
     data.append("duration", formData.duration);
     data.append("status", formData.status);
     if (formData.status === "completed") {
@@ -100,6 +102,7 @@ const Courses = () => {
       registrationLink: course.registrationLink || "",
       socialLink: course.socialLink || "",
       category: course.category || "",
+      instructor: course.instructor || "",
       duration: course.duration || "",
       status: course.status || "pre-launch",
       totalParticipants: course.totalParticipants ?? "",
@@ -140,6 +143,7 @@ const Courses = () => {
       registrationLink: "",
       socialLink: "",
       category: "",
+      instructor: "",
       duration: "",
       status: "pre-launch",
       totalParticipants: "",
@@ -215,25 +219,6 @@ const Courses = () => {
                   <h3 className="text-xl font-bold text-gray-900 mb-2">
                     {course.title}
                   </h3>
-                  <p className="text-sm text-gray-500 mb-1">
-                    Category: {course.category || "Uncategorized"}
-                  </p>
-                  <p className="text-sm text-gray-500 mb-1">
-                    Duration: {course.duration || "Not specified"}
-                  </p>
-                  {course.status === "completed" && (
-                    <>
-                      <p className="text-sm text-gray-500 mb-1">
-                        Total Participants: {course.totalParticipants || 0}
-                      </p>
-                      <p className="text-sm text-gray-500 mb-1">
-                        Male Participants: {course.maleParticipants || 0}
-                      </p>
-                      <p className="text-sm text-gray-500 mb-3">
-                        Female Participants: {course.femaleParticipants || 0}
-                      </p>
-                    </>
-                  )}
                   {course.subtitle && (
                     <p className="text-gray-600 text-sm mb-4">
                       {course.subtitle}
@@ -375,6 +360,21 @@ const Courses = () => {
                       }
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="e.g. Tech, Marketing, Education"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Instructor Name
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.instructor}
+                      onChange={(e) =>
+                        setFormData({ ...formData, instructor: e.target.value })
+                      }
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="e.g. John Doe"
                     />
                   </div>
 

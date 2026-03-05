@@ -26,6 +26,7 @@ const LectureForm = () => {
     watchLink: '',
     description: '',
     category: '',
+    instructor: '',
     tags: '',
     duration: '',
     isPublic: true
@@ -59,6 +60,7 @@ const LectureForm = () => {
         watchLink: lecture.watchLink,
         description: lecture.description || '',
         category: lecture.category || '',
+        instructor: lecture.instructor || '',
         tags: Array.isArray(lecture.tags) ? lecture.tags.join(', ') : lecture.tags || '',
         duration: lecture.duration || '',
         isPublic: lecture.isPublic
@@ -137,6 +139,7 @@ const LectureForm = () => {
       lectureData.append('watchLink', formData.watchLink);
       lectureData.append('description', formData.description);
       lectureData.append('category', formData.category);
+      lectureData.append('instructor', formData.instructor);
       lectureData.append('tags', formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag).join(','));
       lectureData.append('duration', formData.duration);
       lectureData.append('isPublic', formData.isPublic);
@@ -334,6 +337,20 @@ const LectureForm = () => {
                     + Add New
                   </button>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Instructor Name
+                </label>
+                <input
+                  type="text"
+                  name="instructor"
+                  value={formData.instructor}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF6900] focus:border-transparent"
+                  placeholder="Enter instructor name"
+                />
               </div>
 
               {/* Tags */}

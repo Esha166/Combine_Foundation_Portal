@@ -115,7 +115,7 @@ export const getLecture = async (req, res, next) => {
 // Create new lecture (only for admin, superadmin, developer)
 export const createLecture = async (req, res, next) => {
   try {
-    const { title, subtitle, watchLink, description, category, tags, duration, isPublic } = req.body;
+    const { title, subtitle, watchLink, description, category, tags, duration, instructor, isPublic } = req.body;
     
     // Validate required fields
     if (!title || !watchLink) {
@@ -159,6 +159,7 @@ export const createLecture = async (req, res, next) => {
       category,
       tags: Array.isArray(tags) ? tags : (typeof tags === 'string' ? tags.split(',').map(tag => tag.trim()) : []),
       duration,
+      instructor,
       isPublic: isPublic !== undefined ? isPublic : true,
       author: req.user.id
     });
@@ -177,7 +178,7 @@ export const createLecture = async (req, res, next) => {
 export const updateLecture = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { title, subtitle, thumbnail, watchLink, description, category, tags, duration, isActive, isPublic } = req.body;
+    const { title, subtitle, thumbnail, watchLink, description, category, tags, duration, instructor, isActive, isPublic } = req.body;
     
     if (!isValidObjectId(id)) {
       return res.status(400).json({
@@ -229,6 +230,7 @@ export const updateLecture = async (req, res, next) => {
     if (category !== undefined) lecture.category = category;
     if (tags !== undefined) lecture.tags = Array.isArray(tags) ? tags : (typeof tags === 'string' ? tags.split(',').map(tag => tag.trim()) : []);
     if (duration !== undefined) lecture.duration = duration;
+    if (instructor !== undefined) lecture.instructor = instructor;
     if (isActive !== undefined) lecture.isActive = isActive;
     if (isPublic !== undefined) lecture.isPublic = isPublic;
     

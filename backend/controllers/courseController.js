@@ -22,6 +22,7 @@ export const createCourse = async (req, res, next) => {
       registrationLink,
       socialLink,
       category,
+      instructor,
       duration,
       status,
       totalParticipants,
@@ -72,6 +73,7 @@ export const createCourse = async (req, res, next) => {
       registrationLink,
       socialLink,
       category,
+      instructor,
       duration,
       status,
       totalParticipants: status === 'completed' ? parsedTotalParticipants : 0,
@@ -168,6 +170,7 @@ export const updateCourse = async (req, res, next) => {
       registrationLink,
       socialLink,
       category,
+      instructor,
       duration,
       status,
       totalParticipants,
@@ -183,6 +186,7 @@ export const updateCourse = async (req, res, next) => {
     if (registrationLink !== undefined) course.registrationLink = registrationLink;
     if (socialLink !== undefined) course.socialLink = socialLink;
     if (category !== undefined) course.category = category;
+    if (instructor !== undefined) course.instructor = instructor;
     if (duration !== undefined) course.duration = duration;
     if (status !== undefined) course.status = status;
     if (isActive !== undefined) course.isActive = isActive;

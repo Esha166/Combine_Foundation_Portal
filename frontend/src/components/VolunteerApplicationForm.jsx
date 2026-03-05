@@ -70,6 +70,48 @@ const VolunteerApplicationForm = () => {
     });
   };
 
+  const sanitizeNumericHyphen = (value) => value.replace(/[^0-9+-]/g, '');
+  const sanitizePhone = (value) => {
+    const cleaned = value.replace(/[^0-9+-]/g, '');
+    const plusAtStart = cleaned.startsWith('+') ? '+' : '';
+    return plusAtStart + cleaned.replace(/\+/g, '');
+  };
+
+  const handleNumericPlusHyphenKeyDown = (e) => {
+    const allowedControlKeys = [
+      'Backspace',
+      'Delete',
+      'ArrowLeft',
+      'ArrowRight',
+      'Home',
+      'End',
+      'Tab'
+    ];
+
+    if (allowedControlKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
+      return;
+    }
+
+    if (!/[0-9+-]/.test(e.key)) {
+      e.preventDefault();
+    }
+  };
+
+  const handlePhoneKeyDown = (e) => {
+    handleNumericPlusHyphenKeyDown(e);
+
+    if (e.defaultPrevented) return;
+
+    if (e.key === '+') {
+      const value = e.currentTarget.value || '';
+      const cursorPosition = e.currentTarget.selectionStart ?? 0;
+
+      if (value.includes('+') || cursorPosition !== 0) {
+        e.preventDefault();
+      }
+    }
+  };
+
 
 
   if (success) {
@@ -277,7 +319,10 @@ const VolunteerApplicationForm = () => {
                     type="text"
                     placeholder="e.g., 21"
                     value={formData.age}
-                    onChange={(e) => updateField('age', e.target.value)}
+                    onChange={(e) => updateField('age', sanitizeNumericHyphen(e.target.value))}
+                    onKeyDown={handleNumericPlusHyphenKeyDown}
+                    inputMode="numeric"
+                    pattern="[0-9+-]*"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                   {fieldErrors.age && <p className="mt-1 text-sm text-red-600">{fieldErrors.age}</p>}
@@ -292,10 +337,13 @@ const VolunteerApplicationForm = () => {
                     id="phone"
                     name="phone"
                     type="text"
-                    placeholder="+92 3xx xxx xxxx"
+                    placeholder="e.g., +92-300-1234567"
                     required
                     value={formData.phone}
-                    onChange={(e) => updateField('phone', e.target.value)}
+                    onChange={(e) => updateField('phone', sanitizePhone(e.target.value))}
+                    onKeyDown={handlePhoneKeyDown}
+                    inputMode="numeric"
+                    pattern="[+]?[0-9-]*"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                   {fieldErrors.phone && <p className="mt-1 text-sm text-red-600">{fieldErrors.phone}</p>}
@@ -353,7 +401,10 @@ const VolunteerApplicationForm = () => {
                     placeholder="e.g., 12345-1234567-1"
                     value={formData.cnic}
                     required
-                    onChange={(e) => updateField('cnic', e.target.value)}
+                    onChange={(e) => updateField('cnic', sanitizeNumericHyphen(e.target.value))}
+                    onKeyDown={handleNumericPlusHyphenKeyDown}
+                    inputMode="numeric"
+                    pattern="[0-9+-]*"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                   {fieldErrors.cnic && <p className="mt-1 text-sm text-red-600">{fieldErrors.cnic}</p>}

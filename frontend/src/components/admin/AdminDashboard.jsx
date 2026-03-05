@@ -51,9 +51,11 @@ const AdminDashboard = () => {
         }
 
         if (lecturesRes.status === 'fulfilled') {
-          const lectures = lecturesRes.value.data.data?.lectures || lecturesRes.value.data || [];
+          const lecturesPayload = lecturesRes.value.data?.data;
+          const lectures = lecturesPayload?.lectures || lecturesRes.value.data || [];
+          const totalLectures = lecturesPayload?.pagination?.totalLectures ?? lectures.length;
           newRecentData.lectures = lectures.slice(0, 5);
-          setStats(prev => ({ ...prev, lectures: lectures.length }));
+          setStats(prev => ({ ...prev, lectures: totalLectures }));
         }
 
         if (volunteersRes.status === 'fulfilled') {
@@ -201,7 +203,7 @@ const AdminDashboard = () => {
           viewAllLink="/admin/courses"
           items={recentData.courses.map(course => ({
             title: course.title,
-            description: `Instructor: ${course.instructor || 'N/A'}`,
+            description: `Instructor: ${course.instructor || course.createdBy?.name || 'N/A'}`,
             timestamp: course.createdAt ? new Date(course.createdAt).toLocaleDateString() : null,
             icon: (
               <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center">
@@ -219,7 +221,7 @@ const AdminDashboard = () => {
           viewAllLink="/admin/lectures"
           items={recentData.lectures.map(lecture => ({
             title: lecture.title,
-            description: `Author: ${lecture.author?.name || 'Unknown'}`,
+            description: `Instructor: ${lecture.instructor || lecture.author?.name || 'N/A'}`,
             timestamp: lecture.createdAt ? new Date(lecture.createdAt).toLocaleDateString() : null,
             icon: (
               <div className="w-8 h-8 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center">

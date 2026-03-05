@@ -34,6 +34,10 @@ const lectureSchema = new mongoose.Schema({
     required: false,
     trim: true
   },
+  instructor: {
+    type: String,
+    trim: true
+  },
   isActive: {
     type: Boolean,
     default: true

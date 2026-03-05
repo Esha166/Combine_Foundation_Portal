@@ -16,11 +16,8 @@
   "type": "module",
   "license": "ISC",
   "dependencies": {
-<<<<<<< HEAD
     "bcrypt": "^6.0.0",
-=======
     "@dotenvx/dotenvx": "^1.52.0",
->>>>>>> 67c1fa811d87ac7d312502ad216f8779a0b2eac6
     "bcryptjs": "^3.0.2",
     "cloudinary": "^1.41.3",
     "cookie-parser": "^1.4.7",
