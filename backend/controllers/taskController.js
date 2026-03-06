@@ -1,6 +1,25 @@
 import Task from '../models/Task.js';
+import User from '../models/User.js';
+import {
+  sendTaskAssignmentEmail,
+  sendTaskSubmittedAcknowledgementEmail,
+  sendTaskSubmittedForReviewEmail,
+  sendTaskApprovedEmail,
+  sendTaskRejectedEmail
+} from '../utils/emailService.js';
 
-// Get all tasks for the current user
+const sendEmailsSafely = async (emailJobs = []) => {
+  const validJobs = emailJobs.filter((job) => typeof job === 'function');
+  if (!validJobs.length) return;
+
+  const results = await Promise.allSettled(validJobs.map((job) => job()));
+  results.forEach((result) => {
+    if (result.status === 'rejected') {
+      console.error('Task email job failed:', result.reason);
+    }
+  });
+};
+
 // Get tasks (Admins see all or filtered, Volunteers see theirs)
 const getTasks = async (req, res) => {
   try {
@@ -9,17 +28,14 @@ const getTasks = async (req, res) => {
     // If not admin/superadmin/developer, restrict to own tasks
     if (!['admin', 'superadmin', 'developer'].includes(req.user.role)) {
       query.userId = req.user._id;
-    } else {
-      // Admin might want to filter by userId
-      if (req.query.userId) {
-        query.userId = req.query.userId;
-      }
+    } else if (req.query.userId) {
+      query.userId = req.query.userId;
     }
 
     const tasks = await Task.find(query)
       .sort({ createdAt: -1 })
       .populate('userId', 'name email role')
-      .populate('assignedBy', 'name role');
+      .populate('assignedBy', 'name role email');
 
     res.status(200).json({
       success: true,
@@ -37,7 +53,6 @@ const getTasks = async (req, res) => {
 // Create a new task (Admin/SuperAdmin/Developer only)
 const createTask = async (req, res) => {
   try {
-    // Check permissions
     if (!['admin', 'superadmin', 'developer'].includes(req.user.role)) {
       return res.status(403).json({
         success: false,
@@ -54,6 +69,36 @@ const createTask = async (req, res) => {
       });
     }
 
+    if (!description || description.trim() === '') {
+      return res.status(400).json({
+        success: false,
+        message: 'Task description is required'
+      });
+    }
+
+    if (!dueDate) {
+      return res.status(400).json({
+        success: false,
+        message: 'Task due date is required'
+      });
+    }
+
+    const parsedDueDate = new Date(dueDate);
+    if (Number.isNaN(parsedDueDate.getTime())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Task due date is invalid'
+      });
+    }
+
+    const allowedPriorities = ['low', 'medium', 'high'];
+    if (!priority || !allowedPriorities.includes(priority)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Task priority is required and must be low, medium, or high'
+      });
+    }
+
     if (!assignedTo) {
       return res.status(400).json({
         success: false,
@@ -61,16 +106,34 @@ const createTask = async (req, res) => {
       });
     }
 
+    const volunteer = await User.findById(assignedTo).select('name email role');
+    if (!volunteer || volunteer.role !== 'volunteer') {
+      return res.status(400).json({
+        success: false,
+        message: 'Selected user is not a valid volunteer'
+      });
+    }
+
     const task = new Task({
-      userId: assignedTo, // The volunteer
-      assignedBy: req.user._id, // The admin
+      userId: assignedTo,
+      assignedBy: req.user._id,
       title: title.trim(),
-      description: description || '',
-      dueDate: dueDate || null,
-      priority: priority || 'medium'
+      description: description.trim(),
+      dueDate: parsedDueDate,
+      priority,
+      reminderEmailSentAt: null,
+      rejectionReason: ''
     });
 
     await task.save();
+
+    await sendEmailsSafely([
+      () => sendTaskAssignmentEmail({
+        volunteer,
+        task,
+        assignedBy: req.user
+      })
+    ]);
 
     res.status(201).json({
       success: true,
@@ -92,9 +155,6 @@ const updateTask = async (req, res) => {
     const { taskId } = req.params;
     const { title, description, dueDate, priority } = req.body;
 
-    let query = { _id: taskId };
-
-    // Volunteers can't update task details, only admins
     if (!['admin', 'superadmin', 'developer'].includes(req.user.role)) {
       return res.status(403).json({
         success: false,
@@ -102,7 +162,7 @@ const updateTask = async (req, res) => {
       });
     }
 
-    const task = await Task.findOne(query);
+    const task = await Task.findById(taskId);
 
     if (!task) {
       return res.status(404).json({
@@ -113,7 +173,10 @@ const updateTask = async (req, res) => {
 
     if (title !== undefined) task.title = title.trim();
     if (description !== undefined) task.description = description;
-    if (dueDate !== undefined) task.dueDate = dueDate;
+    if (dueDate !== undefined) {
+      task.dueDate = dueDate || null;
+      task.reminderEmailSentAt = null;
+    }
     if (priority !== undefined) task.priority = priority;
 
     await task.save();
@@ -131,14 +194,12 @@ const updateTask = async (req, res) => {
     });
   }
 };
+
 // Delete a task
 const deleteTask = async (req, res) => {
   try {
     const { taskId } = req.params;
 
-    let query = { _id: taskId };
-
-    // Only admins can delete tasks
     if (!['admin', 'superadmin', 'developer'].includes(req.user.role)) {
       return res.status(403).json({
         success: false,
@@ -146,7 +207,7 @@ const deleteTask = async (req, res) => {
       });
     }
 
-    const task = await Task.findOneAndDelete(query);
+    const task = await Task.findByIdAndDelete(taskId);
 
     if (!task) {
       return res.status(404).json({
@@ -178,7 +239,7 @@ const submitTask = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Submission description is required' });
     }
 
-    const task = await Task.findOne({ _id: taskId, userId: req.user._id });
+    const task = await Task.findOne({ _id: taskId, userId: req.user._id }).populate('assignedBy', 'name email role');
 
     if (!task) {
       return res.status(404).json({ success: false, message: 'Task not found' });
@@ -190,7 +251,31 @@ const submitTask = async (req, res) => {
 
     task.status = 'submitted';
     task.submissionDetails = description.trim();
+    task.rejectionReason = '';
     await task.save();
+
+    const superAdmins = await User.find({ role: 'superadmin', isActive: true }).select('name email role');
+    const recipients = [task.assignedBy, ...superAdmins]
+      .filter((recipient) => recipient?.email)
+      .reduce((acc, recipient) => {
+        if (!acc.some((item) => item.email === recipient.email)) {
+          acc.push(recipient);
+        }
+        return acc;
+      }, []);
+
+    await sendEmailsSafely([
+      () => sendTaskSubmittedAcknowledgementEmail({
+        volunteer: req.user,
+        task
+      }),
+      ...recipients.map((recipient) => () => sendTaskSubmittedForReviewEmail({
+        recipient,
+        volunteer: req.user,
+        task,
+        assignedBy: task.assignedBy || { name: 'Admin' }
+      }))
+    ]);
 
     res.status(200).json({ success: true, data: task, message: 'Task submitted for review' });
   } catch (error) {
@@ -207,15 +292,24 @@ const approveTask = async (req, res) => {
     }
 
     const { taskId } = req.params;
-    const task = await Task.findById(taskId);
+    const task = await Task.findById(taskId).populate('userId', 'name email role');
 
     if (!task) {
       return res.status(404).json({ success: false, message: 'Task not found' });
     }
 
     task.status = 'completed';
-    task.completed = true; // Maintain backward compatibility
+    task.completed = true;
+    task.rejectionReason = '';
     await task.save();
+
+    await sendEmailsSafely([
+      () => sendTaskApprovedEmail({
+        volunteer: task.userId,
+        task,
+        reviewer: req.user
+      })
+    ]);
 
     res.status(200).json({ success: true, data: task, message: 'Task approved and completed' });
   } catch (error) {
@@ -232,7 +326,10 @@ const rejectTask = async (req, res) => {
     }
 
     const { taskId } = req.params;
-    const task = await Task.findById(taskId);
+    const { reason } = req.body || {};
+    const rejectionReason = (reason || '').trim();
+
+    const task = await Task.findById(taskId).populate('userId', 'name email role');
 
     if (!task) {
       return res.status(404).json({ success: false, message: 'Task not found' });
@@ -240,7 +337,18 @@ const rejectTask = async (req, res) => {
 
     task.status = 'pending';
     task.completed = false;
+    task.rejectionReason = rejectionReason || 'No reason provided';
+    task.reminderEmailSentAt = null;
     await task.save();
+
+    await sendEmailsSafely([
+      () => sendTaskRejectedEmail({
+        volunteer: task.userId,
+        task,
+        reviewer: req.user,
+        reason: task.rejectionReason
+      })
+    ]);
 
     res.status(200).json({ success: true, data: task, message: 'Task rejected and moved to pending' });
   } catch (error) {
@@ -258,3 +366,4 @@ export {
   approveTask,
   rejectTask
 };
+

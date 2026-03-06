@@ -3,11 +3,18 @@ const frontend_url = (process.env.FRONTEND_URL || 'http://localhost:5173') + '/l
 
 // Create reusable transporter
 const createTransporter = () => {
+  // Default permissive TLS to support corporate SSL inspection/self-signed chains.
+  // Set EMAIL_STRICT_TLS=true to enforce certificate validation.
+  const strictTls = process.env.EMAIL_STRICT_TLS === 'true';
+
   return nodemailer.createTransport({
     service: 'gmail',
     auth: {
       user: process.env.GMAIL_USER,
       pass: process.env.GMAIL_APP_PASSWORD // 16-character app password
+    },
+    tls: {
+      rejectUnauthorized: strictTls
     }
   });
 };
@@ -162,6 +169,268 @@ const sendAdminCredentialsEmail = async (admin, tempPassword) => {
   }
 };
 
+const FRONTEND_BASE_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+
+const escapeHtml = (value = '') => String(value)
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#39;');
+
+const formatDateTime = (date) => {
+  if (!date) return 'Not specified';
+  const parsed = new Date(date);
+  if (Number.isNaN(parsed.getTime())) return 'Not specified';
+  return parsed.toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
+
+const priorityLabel = (priority) => {
+  if (!priority) return 'Medium';
+  return String(priority).charAt(0).toUpperCase() + String(priority).slice(1);
+};
+
+const sendTaskAssignmentEmail = async ({ volunteer, task, assignedBy }) => {
+  try {
+    const transporter = createTransporter();
+
+    const dueDateText = formatDateTime(task?.dueDate);
+    const volunteerTaskUrl = `${FRONTEND_BASE_URL}/volunteer/tasks`;
+
+    const mailOptions = {
+      from: `Combine Foundation <${process.env.GMAIL_USER}>`,
+      to: volunteer.email,
+      subject: `New Task Assigned: ${task.title}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #2563eb;">New Task Assigned</h2>
+          <p>Dear ${escapeHtml(volunteer.name)},</p>
+          <p>A new task has been assigned to you by <strong>${escapeHtml(assignedBy.name || 'Admin')}</strong>.</p>
+
+          <div style="background-color: #f3f4f6; padding: 16px; border-radius: 8px; margin: 16px 0;">
+            <p><strong>Assigned By:</strong> ${escapeHtml(assignedBy.name || 'Admin')}</p>
+            <p><strong>Task:</strong> ${escapeHtml(task.title)}</p>
+            <p><strong>Description:</strong> ${escapeHtml(task.description || 'No description provided')}</p>
+            <p><strong>Priority:</strong> ${escapeHtml(priorityLabel(task.priority))}</p>
+            <p><strong>Deadline:</strong> ${escapeHtml(dueDateText)}</p>
+          </div>
+
+          <p>
+            <a href="${volunteerTaskUrl}" style="background-color: #2563eb; color: #fff; padding: 12px 20px; text-decoration: none; border-radius: 6px; display: inline-block;">
+              Open & Submit Task
+            </a>
+          </p>
+
+          <p>Best regards,<br/>Combine Foundation Team</p>
+        </div>
+      `
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error('Task assignment email error:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+const sendTaskReminderEmail = async ({ volunteer, task }) => {
+  try {
+    const transporter = createTransporter();
+
+    const dueDateText = formatDateTime(task?.dueDate);
+    const volunteerTaskUrl = `${FRONTEND_BASE_URL}/volunteer/tasks`;
+
+    const mailOptions = {
+      from: `Combine Foundation <${process.env.GMAIL_USER}>`,
+      to: volunteer.email,
+      subject: `Reminder: Task Deadline in 36 Hours - ${task.title}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #dc2626;">Task Deadline Reminder</h2>
+          <p>Dear ${escapeHtml(volunteer.name)},</p>
+          <p>Your task is still pending and the deadline is within the next 36 hours.</p>
+
+          <div style="background-color: #fef2f2; padding: 16px; border-radius: 8px; margin: 16px 0; border-left: 4px solid #dc2626;">
+            <p><strong>Task:</strong> ${escapeHtml(task.title)}</p>
+            <p><strong>Description:</strong> ${escapeHtml(task.description || 'No description provided')}</p>
+            <p><strong>Priority:</strong> ${escapeHtml(priorityLabel(task.priority))}</p>
+            <p><strong>Deadline:</strong> ${escapeHtml(dueDateText)}</p>
+          </div>
+
+          <p>
+            <a href="${volunteerTaskUrl}" style="background-color: #dc2626; color: #fff; padding: 12px 20px; text-decoration: none; border-radius: 6px; display: inline-block;">
+              Open Task
+            </a>
+          </p>
+
+          <p>Best regards,<br/>Combine Foundation Team</p>
+        </div>
+      `
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error('Task reminder email error:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+const sendTaskSubmittedAcknowledgementEmail = async ({ volunteer, task }) => {
+  try {
+    const transporter = createTransporter();
+
+    const mailOptions = {
+      from: `Combine Foundation <${process.env.GMAIL_USER}>`,
+      to: volunteer.email,
+      subject: `Task Submission Received: ${task.title}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #2563eb;">Task Submitted</h2>
+          <p>Dear ${escapeHtml(volunteer.name)},</p>
+          <p>Your task submission has been received and is currently under review. We will update you soon.</p>
+
+          <div style="background-color: #f3f4f6; padding: 16px; border-radius: 8px; margin: 16px 0;">
+            <p><strong>Task:</strong> ${escapeHtml(task.title)}</p>
+            <p><strong>Submitted Details:</strong> ${escapeHtml(task.submissionDetails || 'No details provided')}</p>
+          </div>
+
+          <p>Best regards,<br/>Combine Foundation Team</p>
+        </div>
+      `
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error('Task submission acknowledgement email error:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+const sendTaskSubmittedForReviewEmail = async ({ recipient, volunteer, task, assignedBy }) => {
+  try {
+    const transporter = createTransporter();
+    const reviewUrl = `${FRONTEND_BASE_URL}/admin/tasks`;
+
+    const mailOptions = {
+      from: `Combine Foundation <${process.env.GMAIL_USER}>`,
+      to: recipient.email,
+      subject: `Task Submitted for Review: ${task.title}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #FF6900;">Task Submitted for Review</h2>
+          <p>Dear ${escapeHtml(recipient.name || recipient.email)},</p>
+          <p>A volunteer has submitted a task. Please review it.</p>
+
+          <div style="background-color: #f5f3ff; padding: 16px; border-radius: 8px; margin: 16px 0; border-left: 4px solid #7c3aed;">
+            <p><strong>Volunteer:</strong> ${escapeHtml(volunteer.name)} (${escapeHtml(volunteer.email)})</p>
+            <p><strong>Assigned By:</strong> ${escapeHtml(assignedBy.name || 'Admin')}</p>
+            <p><strong>Task:</strong> ${escapeHtml(task.title)}</p>
+            <p><strong>Description:</strong> ${escapeHtml(task.description || 'No description provided')}</p>
+            <p><strong>Priority:</strong> ${escapeHtml(priorityLabel(task.priority))}</p>
+            <p><strong>Deadline:</strong> ${escapeHtml(formatDateTime(task.dueDate))}</p>
+            <p><strong>Submission Details:</strong> ${escapeHtml(task.submissionDetails || 'No details provided')}</p>
+          </div>
+
+          <p>
+            <a href="${reviewUrl}" style="background-color: #FF6900; color: #fff; padding: 12px 20px; text-decoration: none; border-radius: 6px; display: inline-block;">
+              Review Task
+            </a>
+          </p>
+
+          <p>Best regards,<br/>Combine Foundation Team</p>
+        </div>
+      `
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error('Task submitted-for-review email error:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+const sendTaskApprovedEmail = async ({ volunteer, task, reviewer }) => {
+  try {
+    const transporter = createTransporter();
+
+    const mailOptions = {
+      from: `Combine Foundation <${process.env.GMAIL_USER}>`,
+      to: volunteer.email,
+      subject: `Task Completed: ${task.title}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #16a34a;">Task Approved</h2>
+          <p>Dear ${escapeHtml(volunteer.name)},</p>
+          <p>Your submitted task has been approved by ${escapeHtml(reviewer.name || 'Admin')}.</p>
+          <p>The task is now marked as <strong>completed</strong>.</p>
+
+          <div style="background-color: #f0fdf4; padding: 16px; border-radius: 8px; margin: 16px 0; border-left: 4px solid #16a34a;">
+            <p><strong>Task:</strong> ${escapeHtml(task.title)}</p>
+            <p><strong>Priority:</strong> ${escapeHtml(priorityLabel(task.priority))}</p>
+            <p><strong>Deadline:</strong> ${escapeHtml(formatDateTime(task.dueDate))}</p>
+          </div>
+
+          <p>Best regards,<br/>Combine Foundation Team</p>
+        </div>
+      `
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error('Task approved email error:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+const sendTaskRejectedEmail = async ({ volunteer, task, reviewer, reason }) => {
+  try {
+    const transporter = createTransporter();
+    const volunteerTaskUrl = `${FRONTEND_BASE_URL}/volunteer/tasks`;
+
+    const mailOptions = {
+      from: `Combine Foundation <${process.env.GMAIL_USER}>`,
+      to: volunteer.email,
+      subject: `Task Rejected: ${task.title}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #dc2626;">Task Rejected</h2>
+          <p>Dear ${escapeHtml(volunteer.name)},</p>
+          <p>Your submitted task has been rejected by ${escapeHtml(reviewer.name || 'Admin')}.</p>
+
+          <div style="background-color: #fef2f2; padding: 16px; border-radius: 8px; margin: 16px 0; border-left: 4px solid #dc2626;">
+            <p><strong>Task:</strong> ${escapeHtml(task.title)}</p>
+            <p><strong>Reason:</strong> ${escapeHtml(reason || 'No reason provided')}</p>
+          </div>
+
+          <p>
+            <a href="${volunteerTaskUrl}" style="background-color: #dc2626; color: #fff; padding: 12px 20px; text-decoration: none; border-radius: 6px; display: inline-block;">
+              Review and Resubmit
+            </a>
+          </p>
+
+          <p>Best regards,<br/>Combine Foundation Team</p>
+        </div>
+      `
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error('Task rejected email error:', error);
+    return { success: false, error: error.message };
+  }
+};
 // Test email function
 const sendTestEmail = async (toEmail) => {
   try {
@@ -335,5 +604,14 @@ export {
   sendInvitationEmail,
   sendAdminCredentialsEmail,
   sendApplicationReceivedEmail,
-  sendCompletionEmail
+  sendCompletionEmail,
+  sendTaskAssignmentEmail,
+  sendTaskReminderEmail,
+  sendTaskSubmittedAcknowledgementEmail,
+  sendTaskSubmittedForReviewEmail,
+  sendTaskApprovedEmail,
+  sendTaskRejectedEmail
 };
+
+
+

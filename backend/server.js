@@ -8,6 +8,7 @@ import helmet from 'helmet';
 import connectDB from './config/db.js';
 import errorHandler from './middleware/errorHandler.js';
 import { limiter } from './middleware/rateLimiter.js';
+import { startTaskReminderWorker } from './services/taskReminderService.js';
 
 // Import discriminator models to register them with the base User model
 import './models/Trustee.js';
@@ -41,6 +42,7 @@ if (result.error) {
 
 // Connect to database
 connectDB();
+startTaskReminderWorker();
 
 const app = express();
 
@@ -132,4 +134,5 @@ process.on('unhandledRejection', (err, promise) => {
   console.log(`Error: ${err.message}`);
   server.close(() => process.exit(1));
 });
+
 

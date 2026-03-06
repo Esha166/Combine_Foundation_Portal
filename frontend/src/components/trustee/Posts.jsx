@@ -74,7 +74,7 @@ const Posts = () => {
                   {post.title}
                 </h3>
                 {post.subtitle && (
-                  <p className="text-gray-700 text-sm font-medium mb-2">{post.subtitle}</p>
+                  <p className="text-gray-700 text-sm font-medium mb-2 truncate">{post.subtitle}</p>
                 )}
                 <div className="flex items-center text-sm text-gray-500 mb-3">
                   <span>By {post.createdBy?.name || post.author?.name || 'Unknown'}</span>
@@ -178,3 +178,4 @@ const Posts = () => {
 };
 
 export default Posts;
+

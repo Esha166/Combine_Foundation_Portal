@@ -124,18 +124,18 @@ const Posts = () => {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {posts.map((post) => (
-              <div key={post._id} className="bg-white rounded-xl shadow hover:shadow-lg transition overflow-hidden">
+              <div key={post._id} className="bg-white rounded-xl shadow hover:shadow-lg transition overflow-hidden flex flex-col">
                 <img 
                   src={post.imageUrl} 
                   alt={post.title}
                   className="w-full h-48 object-cover"
                 />
-                <div className="p-6">
+                <div className="p-6 flex flex-1 flex-col">
                   <h3 className="text-xl font-bold text-gray-900 mb-2">{post.title}</h3>
                   {post.subtitle && (
-                    <p className="text-gray-600 text-sm mb-4">{post.subtitle}</p>
+                    <p className="text-gray-600 text-sm mb-4 truncate">{post.subtitle}</p>
                   )}
-                  <div className="flex space-x-2">
+                  <div className="flex space-x-2 mt-auto">
                     <button
                       onClick={() => handleEdit(post)}
                       className="flex-1 px-4 py-2 bg-[#FF6900] text-white text-sm font-medium rounded-lg hover:bg-[#ff6a00d6]"

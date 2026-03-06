@@ -217,7 +217,7 @@ const LectureManagement = () => {
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {lectures.map((lecture) => (
-                  <div key={lecture._id} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition">
+                  <div key={lecture._id} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition flex flex-col">
                     <div className="relative">
                       <img
                         src={lecture.thumbnail}
@@ -234,12 +234,12 @@ const LectureManagement = () => {
                         {lecture.isActive ? (lecture.isPublic ? 'Public' : 'Private') : 'Inactive'}
                       </div>
                     </div>
-                    <div className="p-4">
+                    <div className="p-4 flex flex-1 flex-col">
                       <h3 className="font-bold text-lg text-gray-900 mb-2 line-clamp-2">
                         {lecture.title}
                       </h3>
                       {lecture.subtitle && (
-                        <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                        <p className="text-gray-600 text-sm mb-3 truncate">
                           {lecture.subtitle}
                         </p>
                       )}
@@ -252,7 +252,7 @@ const LectureManagement = () => {
                           {lecture.category}
                         </span>
                       )}
-                      <div className="flex space-x-2">
+                      <div className="flex space-x-2 mt-auto">
                         <Link
                           to={`/admin/lectures/edit/${lecture._id}`}
                           className="flex-1 text-center px-3 py-2 bg-[#FF6900] text-white text-sm rounded-lg hover:bg-[#ff6a00d6]"
@@ -327,3 +327,4 @@ const LectureManagement = () => {
 };
 
 export default LectureManagement;
+

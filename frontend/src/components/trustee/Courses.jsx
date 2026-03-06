@@ -120,7 +120,7 @@ const Courses = () => {
                   </button>
                 </div>
 
-                {course.status === 'completed' && (
+                {/* {course.status === 'completed' && (
                   <div className="mt-3">
                     <p className="text-sm text-gray-500 mb-1">
                       Total Participants: {course.totalParticipants || 0}
@@ -132,7 +132,7 @@ const Courses = () => {
                       Female Participants: {course.femaleParticipants || 0}
                     </p>
                   </div>
-                )}
+                )} */}
               </div>
             </div>
           ))}
@@ -169,7 +169,7 @@ const Courses = () => {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <p className="text-sm text-gray-500">ID: {selectedCourse._id}</p>
+                  
                   <p className="text-lg font-semibold text-gray-900">{selectedCourse.title}</p>
                   {selectedCourse.subtitle && (
                     <p className="text-sm text-gray-700">{selectedCourse.subtitle}</p>

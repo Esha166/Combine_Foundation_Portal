@@ -38,6 +38,14 @@ const taskSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  rejectionReason: {
+    type: String,
+    default: ''
+  },
+  reminderEmailSentAt: {
+    type: Date,
+    default: null
+  },
   completed: {
     type: Boolean,
     default: false
@@ -52,9 +60,10 @@ const taskSchema = new mongoose.Schema({
   }
 });
 
-taskSchema.pre('save', function (next) {
+taskSchema.pre('save', function () {
   this.updatedAt = Date.now();
-  next();
 });
 
 export default mongoose.model('Task', taskSchema);
+
+

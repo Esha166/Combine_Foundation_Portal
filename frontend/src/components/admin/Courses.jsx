@@ -197,14 +197,14 @@ const Courses = () => {
             {courses.map((course) => (
               <div
                 key={course._id}
-                className="bg-white rounded-xl shadow hover:shadow-lg transition overflow-hidden"
+                className="bg-white rounded-xl shadow hover:shadow-lg transition overflow-hidden flex flex-col"
               >
                 <img
                   src={course.imageUrl}
                   alt={course.title}
                   className="w-full h-48 object-cover"
                 />
-                <div className="p-6">
+                <div className="p-6 flex flex-1 flex-col">
                   <div className="mb-3">
                     <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
                       course.status === 'completed'
@@ -238,12 +238,13 @@ const Courses = () => {
                       </p>
                     </>
                   )}
+                  
                   {course.subtitle && (
-                    <p className="text-gray-600 text-sm mb-4">
+                    <p className="text-gray-600 text-sm mb-4 truncate">
                       {course.subtitle}
                     </p>
                   )}
-                  <div className="flex space-x-2">
+                  <div className="flex space-x-2 mt-auto">
                     <button
                       onClick={() => handleEdit(course)}
                       className="flex-1 px-4 py-2 bg-[#FF6900] text-white text-sm font-medium rounded-lg hover:bg-[#ff6a00d6]"
@@ -511,3 +512,6 @@ const Courses = () => {
 };
 
 export default Courses;
+
+
+

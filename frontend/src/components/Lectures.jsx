@@ -220,7 +220,7 @@ const Lectures = () => {
                         {lecture.title}
                       </h3>
                       {lecture.subtitle && (
-                        <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                        <p className="text-gray-600 text-sm mb-3 truncate">
                           {lecture.subtitle}
                         </p>
                       )}
@@ -294,3 +294,4 @@ const Lectures = () => {
 };
 
 export default Lectures;
+

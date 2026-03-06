@@ -19,7 +19,7 @@ const AdminTaskManagement = () => {
         title: '',
         description: '',
         dueDate: '',
-        priority: 'medium',
+        priority: '',
     });
 
     useEffect(() => {
@@ -63,8 +63,14 @@ const AdminTaskManagement = () => {
 
     const handleAssignTask = async (e) => {
         e.preventDefault();
-        if (!selectedVolunteer) return;
-        if (!newTask.title.trim()) return;
+        if (!selectedVolunteer) {
+            showMsg('Please select a volunteer first', 'error');
+            return;
+        }
+        if (!newTask.title.trim() || !newTask.description.trim() || !newTask.dueDate || !newTask.priority) {
+            showMsg('All 4 fields are required: title, description, due date, and priority', 'error');
+            return;
+        }
 
         try {
             await taskService.createTask({
@@ -77,7 +83,7 @@ const AdminTaskManagement = () => {
                 title: '',
                 description: '',
                 dueDate: '',
-                priority: 'medium',
+                priority: '',
             });
             // Refresh tasks
             fetchVolunteerTasks(selectedVolunteer._id);
@@ -104,8 +110,10 @@ const AdminTaskManagement = () => {
     const handleRejectTask = async (taskId) => {
         if (!window.confirm("Are you sure you want to reject this task? It will be moved back to pending.")) return;
 
+        const reason = window.prompt('Please provide rejection reason (will be emailed to volunteer):', '') || '';
+
         try {
-            const response = await taskService.rejectTask(taskId);
+            const response = await taskService.rejectTask(taskId, reason.trim());
             const updatedTask = response.data.data || response.data;
             setVolunteerTasks(volunteerTasks.map(task =>
                 (task._id || task.id) === taskId ? updatedTask : task
@@ -184,7 +192,8 @@ const AdminTaskManagement = () => {
                                 <div className="space-y-2">
                                     <label className="block text-sm font-medium text-gray-700">Choose a volunteer</label>
                                     <select
-                                        className="w-full border-gray-300 rounded-md shadow-sm focus:ring-[#FF6900] focus:border-[#FF6900]"
+                                        required
+                                            className="w-full border-gray-300 rounded-md shadow-sm focus:ring-[#FF6900] focus:border-[#FF6900]"
                                         onChange={(e) => {
                                             const vol = volunteers.find(v => v._id === e.target.value);
                                             setSelectedVolunteer(vol);
@@ -221,6 +230,7 @@ const AdminTaskManagement = () => {
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700">Description</label>
                                         <textarea
+                                            required
                                             className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-[#FF6900] focus:border-[#FF6900]"
                                             rows="3"
                                             value={newTask.description}
@@ -232,6 +242,7 @@ const AdminTaskManagement = () => {
                                         <label className="block text-sm font-medium text-gray-700">Due Date</label>
                                         <input
                                             type="datetime-local"
+                                            required
                                             className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-[#FF6900] focus:border-[#FF6900]"
                                             value={newTask.dueDate}
                                             onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
@@ -241,11 +252,13 @@ const AdminTaskManagement = () => {
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700">Priority</label>
                                         <select
+                                            required
                                             className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-[#FF6900] focus:border-[#FF6900]"
                                             value={newTask.priority}
                                             onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
                                             disabled={!selectedVolunteer}
                                         >
+                                            <option value="">-- Select Priority --</option>
                                             <option value="low">Low</option>
                                             <option value="medium">Medium</option>
                                             <option value="high">High</option>
@@ -356,3 +369,6 @@ const AdminTaskManagement = () => {
 };
 
 export default AdminTaskManagement;
+
+
+

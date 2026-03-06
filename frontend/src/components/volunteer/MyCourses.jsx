@@ -27,10 +27,10 @@ const MyCourses = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <div className="flex justify-between items-start">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <h1 className="text-3xl font-bold text-[#FF6900]">My Courses</h1>
               <p className="text-gray-600 mt-2">Access your training materials and courses</p>
@@ -49,30 +49,37 @@ const MyCourses = () => {
             <p className="text-gray-600">No courses available at the moment</p>
           </div>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {courses.map((course) => (
-              <div key={course._id} className="bg-white rounded-xl shadow hover:shadow-lg transition overflow-hidden">
-                <img 
-                  src={course.imageUrl} 
-                  alt={course.title}
-                  className="w-full h-48 object-cover"
-                />
-                <div className="p-6">
+              <div key={course._id} className="bg-white rounded-xl shadow hover:shadow-lg transition overflow-hidden h-full flex flex-col">
+                {course.imageUrl ? (
+                  <img
+                    src={course.imageUrl}
+                    alt={course.title}
+                    className="w-full h-48 object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-48 bg-orange-50 flex items-center justify-center text-[#FF6900] font-semibold">
+                    No Image
+                  </div>
+                )}
+
+                <div className="p-6 flex flex-col flex-1">
                   <h3 className="text-xl font-bold text-gray-900 mb-2">{course.title}</h3>
                   {course.subtitle && (
-                    <p className="text-gray-600 text-sm mb-4">{course.subtitle}</p>
+                    <p className="text-gray-600 text-sm mb-4 truncate">{course.subtitle}</p>
                   )}
                   {course.description && (
                     <p className="text-gray-600 text-sm mb-4">{course.description}</p>
                   )}
-                  
-                  <div className="flex space-x-2">
+
+                  <div className="mt-auto flex flex-wrap gap-2">
                     {course.registrationLink && (
                       <a
                         href={course.registrationLink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex-1 px-4 py-2 bg-[#FF6900] text-white text-sm font-medium rounded-lg hover:bg-[#ff6a00d6] text-center"
+                        className="flex-1 min-w-[140px] px-4 py-2 bg-[#FF6900] text-white text-sm font-medium rounded-lg hover:bg-[#ff6a00d6] text-center"
                       >
                         Register
                       </a>
@@ -85,7 +92,7 @@ const MyCourses = () => {
                         className="px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50"
                       >
                         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                         </svg>
                       </a>
                     )}

@@ -40,8 +40,8 @@ export const taskService = {
   },
 
   // Reject a task
-  rejectTask: async (taskId) => {
-    const response = await api.patch(`/tasks/${taskId}/reject`);
+  rejectTask: async (taskId, reason = '') => {
+    const response = await api.patch(`/tasks/${taskId}/reject`, { reason });
     return response;
   }
 };
